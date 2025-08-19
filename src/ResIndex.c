@@ -42,13 +42,13 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
     }
 
     // Initialize fields
+    I->n = 0;
     I->names = NULL;
     I->offset = NULL;
     I->atoms = NULL;
 
     // Handle empty case
     if(n==0) {
-        I->names = NULL;
         I->offset = calloc(2, sizeof(size_t));
         I->atoms = (Atom**) calloc(1, sizeof(Atom*));
         I->offset[0] = I->offset[1] = 0;
