@@ -16,35 +16,6 @@
 // TessAtom				A template for a single atom
 // ==================================================================
 
-// ==================================================================
-// Type TessAtom
-// ==================================================================
-// code					The code describing the match mode
-// resSeq				The residue sequence number
-// nameCount			Number of atom names present
-// resNameCount			Number of residue names present
-// chainID				The chain field
-// name[k]				kth atom name alternate
-// resName[k]			kth residue name alternate
-// pos[k]				kth coordinate of position of atom
-// distWeight[k]			kth atom distance threshold modifier (weight)
-// ==================================================================
-
-struct _TessAtom
-{
-	int code;
-	int resSeq;
-	int nameCount;
-	int resNameCount;
-	char chainID1; //Riziotis edit
-	char chainID2;
-	//char chainID; 
-	char **name;
-	char **resName;
-	double pos[3];
-	double distWeight;
-};
-
 typedef struct _TessAtom TessAtom;
 
 // ==================================================================
@@ -68,6 +39,9 @@ extern char TessAtom_chainID1(const TessAtom*);
 extern char TessAtom_chainID2(const TessAtom*);
 extern double TessAtom_distWeight(const TessAtom*);
 //extern char TessAtom_chainID(const TessAtom*);
+extern const char* TessAtom_resName(const TessAtom*, int);
+extern int TessAtom_resNameCount(const TessAtom*);
+extern int TessAtom_code(const TessAtom*);
 
 // ==================================================================
 
