@@ -4,15 +4,17 @@
 // Implementation of types Jess and JessQuery.
 // ==================================================================
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include <string.h>
+
 #include "Jess.h"
 #include "Molecule.h"
 #include "Scanner.h"
 #include "TessTemplate.h"
 #include "Super.h"
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <string.h>
+
 
 // ==================================================================
 // Forward declarations of local types
