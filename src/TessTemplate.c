@@ -174,13 +174,10 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 				int	j = ResIndex_find(M->index, resName);
 				if((j == -1) || (done[j])) continue;
 				done[j] = 1;
-				for (it = ResIndex_values(M->index, j); *it != NULL; A = it++) {
+				for (it = ResIndex_values(M->index, j); *it != NULL; it++) {
 					A = (*it);
 					if(TessTemplate_match(T,k,A))
-					{
-						S->atom[S->count]=A;
-						S->count++;
-					}
+						CandidateSet_addAtom(S, A);
 				}
 			}
 			free(done);
@@ -192,24 +189,13 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 			for (m=0; m<n; m++) {
 				A = (Atom*)Molecule_atom(M,m);
 				if(TessTemplate_match(T,k,A))
-				{
-					S->atom[S->count]=A;
-					S->count++;
-				}
+						CandidateSet_addAtom(S, A);
 			}
 			break;
 	}
 
-	if (S->count > 0) {
-
-		S->atom=(Atom**)realloc(S->atom,sizeof(Atom*)*S->count);
-		S->coord=(double**)calloc(S->count,sizeof(double*));
-
-		for(m=0; m<S->count; m++)
-		{
-			S->coord[m]=S->atom[m]->x;
-		}
-	}
+	if (S->count > 0)
+		CandidateSet_recordCoordinates(S);
 
 	return S;
 }

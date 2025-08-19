@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 #include "CandidateSet.h"
+#include "Atom.h"
 #include "Molecule.h"
 #include "Template.h"
 
@@ -32,6 +33,24 @@ CandidateSet *CandidateSet_create(const Molecule *M)
     
     return S;
 }
+
+void CandidateSet_addAtom(CandidateSet *S, Atom *A)
+{
+	S->atom[S->count]=A;
+	S->count++;
+}
+
+void CandidateSet_recordCoordinates(CandidateSet *S)
+{
+	int m;
+	
+	S->atom=(Atom**)realloc(S->atom,sizeof(Atom*)*S->count);
+	S->coord=(double**)calloc(S->count,sizeof(double*));
+
+	for(m=0; m<S->count; m++)
+		S->coord[m]=S->atom[m]->x;
+}
+
 
 void CandidateSet_free(CandidateSet *S)
 {

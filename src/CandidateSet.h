@@ -36,7 +36,9 @@ typedef struct _CandidateSet CandidateSet;
 // free(S)				Free candidate set
 // ==================================================================
 
-CandidateSet *CandidateSet_create(const Molecule *M);
+CandidateSet *CandidateSet_create(const Molecule*);
+void CandidateSet_addAtom(CandidateSet*, Atom*);
+void CandidateSet_recordCoordinates(CandidateSet*);
 void CandidateSet_free(CandidateSet*);
 
 #endif
