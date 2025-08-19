@@ -27,6 +27,7 @@ typedef struct _Template Template;
 // match(T,k,A)			True if A matches atom k of T
 // range(T,i,j,a,b)		[*a,*b] <- range of |atom i - atom j|
 // check(T,A,k,ignore_chain)	Check n-ary rules on atom k-1 and 0,...,k-2
+// candidates(T,M,k)	Generate a set of candidate atoms of M matching atom k of T
 // position(T,i)		Position of atom i (example position)
 // name(T)			Returns the symbolic name for the template
 // logE(T,x,n)			Provide an estimate of logE for a hit

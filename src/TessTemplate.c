@@ -414,6 +414,7 @@ Template* TessTemplate_copy(const Template *T)
 	T2->count=TessTemplate_count;
 	T2->range=TessTemplate_range;
 	T2->check=TessTemplate_check;
+	T2->candidates=TessTemplate_candidates;
 	T2->name=TessTemplate_name;
 	T2->logE=TessTemplate_logE;
 	T2->distWeight=TessTemplate_distWeight;
