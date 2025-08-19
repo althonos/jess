@@ -13,35 +13,6 @@
 #include <ctype.h>
 
 // ==================================================================
-// Local type TessAtom
-// ==================================================================
-// code					The code describing the match mode
-// resSeq				The residue sequence number
-// nameCount			Number of atom names present
-// resNameCount			Number of residue names present
-// chainID				The chain field
-// name[k]				kth atom name alternate
-// resName[k]			kth residue name alternate
-// pos[k]				kth coordinate of position of atom
-// distWeight[k]			kth atom distance threshold modifier (weight)
-// ==================================================================
-
-struct _TessAtom
-{
-	int code;
-	int resSeq;
-	int nameCount;
-	int resNameCount;
-	char chainID1; //Riziotis edit
-	char chainID2;
-	//char chainID; 
-	char **name;
-	char **resName;
-	double pos[3];
-	double distWeight;
-};
-
-// ==================================================================
 // Methods of type TessAtom (ARGGH!!!)
 // ==================================================================
 
@@ -292,6 +263,11 @@ void TessAtom_free(TessAtom *A)
 int TessAtom_resSeq(const TessAtom *A)
 {
 	return A->resSeq;
+}
+
+int TessAtom_code(const TessAtom *A)
+{
+	return A->code;
 }
 
 static int TessAtom_isCarbon(const Atom *A)
