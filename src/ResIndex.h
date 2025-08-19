@@ -1,0 +1,43 @@
+// ==================================================================
+// HashMap.h
+// Copyright (c) Martin Larralde, 2025
+// ==================================================================
+// Declaration of type ResIndex.
+// ==================================================================
+
+#ifndef ResIndex_H
+#define ResIndex_H
+
+#include "Atom.h"
+
+// ==================================================================
+// Local type ResIndex
+// ==================================================================
+// n				    Number of distinct residue names
+// names[k]				Name at index k
+// offset[k]            Offset in indices of name at index k
+// indices[i]           Indices for molecule
+// ==================================================================
+
+struct _ResIndex
+{
+    int     n;  
+	char*   names;
+    size_t* offset;
+    Atom**  atoms;
+};
+
+typedef struct _ResIndex ResIndex;
+
+// ==================================================================
+// Declaration of methods of type _ResIndex
+// ==================================================================
+// create(A,n)  		Create from array A of n atoms
+// free(N)				Free name index
+// ==================================================================
+
+extern ResIndex* ResIndex_create(Atom**,int);
+extern Atom** ResIndex_get(ResIndex*, const char[4]);
+extern void ResIndex_free(ResIndex*);
+
+#endif

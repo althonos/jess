@@ -1,0 +1,133 @@
+// ==================================================================
+// HashMap.h
+// Copyright (c) Martin Larralde, 2025
+// ==================================================================
+// Implementation of type ResIndex.
+// ==================================================================
+
+#include <stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+
+#include "Atom.h"
+#include "ResIndex.h"
+
+static int ResNames_compare(const void *pa, const void *pb)
+{
+	const Atom *a = **((const Atom***)pa);
+	const Atom *b = **((const Atom***)pb);
+	return strncasecmp(&a->resName[0], &b->resName[0], 4);
+}
+
+extern ResIndex* ResIndex_create(Atom** atoms, int n)
+{
+    int i;
+    int j;
+    int k;
+    int numRes;
+    Atom*** tmp;
+    ResIndex* I;
+
+    // Allocate struct
+
+    I = calloc(1, sizeof(ResIndex));
+    if(!I) {
+        return NULL;
+    }
+
+
+    // Allocate auxilliary data to sort names
+
+    tmp = (Atom***) calloc(n, sizeof(Atom**));
+    if(!tmp) {
+        ResIndex_free(I);
+        return NULL;
+    }
+
+    // Sort residue names found in molecule
+
+    for (i = 0; i < n; i++) tmp[i] = (Atom**) &atoms[i];
+    qsort(tmp,n, sizeof(Atom**),ResNames_compare);
+
+    // Count number of distinct residue names in molecule
+
+    numRes = 1;
+    for (i = 1; i < n; i++) numRes += (strncasecmp((*tmp[i-1])->resName, (*tmp[i])->resName, 4) != 0);
+    // printf("numRes=%i numAtom=%i\n", numRes, n);
+    
+    // Allocate data for residues
+
+    I->names = (char*) calloc(numRes, 4*sizeof(char));
+    I->offset = (size_t*) calloc(numRes, sizeof(size_t));
+    I->atoms = (Atom**) calloc(n + numRes, sizeof(size_t));
+    if ((I->names == NULL) || (I->atoms == NULL) || (I->offset == NULL)) {
+        free(tmp);
+        ResIndex_free(I);
+        return NULL;
+    }
+
+    // Record data in index
+
+    memcpy(&I->names[0], (*tmp[0])->resName, 4*sizeof(char));
+    I->n = numRes;
+    I->offset[0] = 0;
+    I->atoms[0] = *tmp[0];
+
+    char* names = &I->names[4];
+    size_t* offset = &I->offset[1];
+
+    for (i = 1, j = 4, k = 1; i < n; i++) {
+
+        if (strncasecmp((*tmp[i-1])->resName, (*tmp[i])->resName, 4) != 0) {
+            memcpy(names, (*tmp[i])->resName, 4*sizeof(char));
+            names += 4;
+
+            I->atoms[k] = NULL;
+            k += 1;
+
+            (*offset) = k;
+            offset++;
+        }
+
+        I->atoms[k] = *tmp[i];
+        k += 1;
+    }
+
+    // for (i = 0; i<N->n; i++) {
+    //     printf("i=%i name=%4s offset=%llu\n", i, &N->names[4*i], N->offset[i]);
+    //     for (const Atom** atom = &N->atoms[N->offset[i]]; *atom != NULL; atom++) {
+    //         printf("%i %4s\n", (*atom)->serial, (*atom)->resName);
+    //     }
+    // }
+
+    free(tmp);
+    
+    return I;
+}
+
+extern Atom** ResIndex_get(ResIndex* I, const char resName[4])
+{
+    //NB: As the names have been sorted with `qsort`, we can use a binary search
+    //    instead of a full scan here (TODO!)
+    
+    size_t i;
+
+    for (i = 0; i < I->n; i++) {
+        if (strncasecmp(&I->names[4*i], resName, 4) == 0) {
+            return &I->atoms[I->offset[i]];
+        }
+    }
+
+    return NULL;
+}
+
+extern void ResIndex_free(ResIndex* I)
+{
+    if(I) {
+        if (I->names) free(I->names);
+        if (I->atoms) free(I->atoms);
+        if (I->offset) free(I->offset);
+        free(I);
+    }
+}
