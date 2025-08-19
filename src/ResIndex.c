@@ -36,7 +36,6 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
         return NULL;
     }
 
-
     // Allocate auxilliary data to sort names
 
     tmp = (Atom***) calloc(n, sizeof(Atom**));
@@ -54,12 +53,11 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
 
     numRes = 1;
     for (i = 1; i < n; i++) numRes += (strncasecmp((*tmp[i-1])->resName, (*tmp[i])->resName, 4) != 0);
-    // printf("numRes=%i numAtom=%i\n", numRes, n);
     
     // Allocate data for residues
 
     I->names = (char*) calloc(numRes, 4*sizeof(char));
-    I->offset = (size_t*) calloc(numRes, sizeof(size_t));
+    I->offset = (size_t*) calloc(numRes+1, sizeof(size_t));
     I->atoms = (Atom**) calloc(n + numRes, sizeof(size_t));
     if ((I->names == NULL) || (I->atoms == NULL) || (I->offset == NULL)) {
         free(tmp);
@@ -94,12 +92,7 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
         k += 1;
     }
 
-    // for (i = 0; i<N->n; i++) {
-    //     printf("i=%i name=%4s offset=%llu\n", i, &N->names[4*i], N->offset[i]);
-    //     for (const Atom** atom = &N->atoms[N->offset[i]]; *atom != NULL; atom++) {
-    //         printf("%i %4s\n", (*atom)->serial, (*atom)->resName);
-    //     }
-    // }
+    (*offset) = k;
 
     free(tmp);
     
@@ -119,7 +112,7 @@ extern Atom** ResIndex_get(ResIndex* I, const char resName[4])
         }
     }
 
-    return NULL;
+    return &I->atoms[I->offset[1] - 1];
 }
 
 extern void ResIndex_free(ResIndex* I)
