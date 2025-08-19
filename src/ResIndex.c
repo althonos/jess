@@ -13,6 +13,11 @@
 #include "Atom.h"
 #include "ResIndex.h"
 
+#ifdef _MSC_VER
+#define strncasecmp _strnicmp
+#define strcasecmp _stricmp
+#endif
+
 static int ResNames_compare(const void *pa, const void *pb)
 {
 	const Atom *a = **((const Atom***)pa);
