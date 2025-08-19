@@ -163,8 +163,11 @@ static CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *
 	if(!(S = CandidateSet_create(M)))
 		return NULL;
 
-	switch(J->atom[k]->code)
+	switch(TessAtom_code(J->atom[k]))
 	{
+		// The following match codes require a match on residue name, so we
+		// can use the residue name index to iterate only on atoms from 
+		// (one of) the required residue(s).
 		case -1:
 		case 0:
 		case 1:
@@ -175,33 +178,31 @@ static CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *
 		case 6:
 		case 7:
 		case 8:
-			{
-				for (i=0; i<J->atom[k]->resNameCount; i++) {
-					const char* resName = J->atom[k]->resName[i];
-					for (Atom** atom = ResIndex_get(M->index, resName); *atom != NULL; atom++) {
-						A = (*atom);
-						if(TessTemplate_match(T,k,A))
-						{
-							S->atom[S->count]=A;
-							S->count++;
-						}
-					}
-				}
-				break;
-			}
-
-		default:
-			{
-				for (m=0; m<n; m++) {
-					A = (Atom*)Molecule_atom(M,m);
+			for (i=0; i<TessAtom_resNameCount(J->atom[k]); i++) {
+				const char* resName = TessAtom_resName(J->atom[k], i);
+				for (Atom** atom = ResIndex_get(M->index, resName); *atom != NULL; atom++) {
+					A = (*atom);
 					if(TessTemplate_match(T,k,A))
 					{
 						S->atom[S->count]=A;
 						S->count++;
 					}
 				}
-				break;
 			}
+			break;
+
+		// For remaining match codes, a match on residue name is not required,
+		// so we just fallback to the original implementation.
+		default:
+			for (m=0; m<n; m++) {
+				A = (Atom*)Molecule_atom(M,m);
+				if(TessTemplate_match(T,k,A))
+				{
+					S->atom[S->count]=A;
+					S->count++;
+				}
+			}
+			break;
 	}
 
 	if (S->count > 0) {
