@@ -143,55 +143,46 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 	int m;
 	int i;
 	int j;
+	int code;
 
 	if(!(S = CandidateSet_create(M)))
 		return NULL;
 
+	// The following match codes require a match on residue name, so we
+	// can use the residue name index to iterate only on atoms from 
+	// (one of) the required residue(s).
 
-
-	switch(TessAtom_code(J->atom[k]))
+	code = TessAtom_code(J->atom[k]);
+	if((code >= -1) && (code <= 8))
 	{
-		// The following match codes require a match on residue name, so we
-		// can use the residue name index to iterate only on atoms from 
-		// (one of) the required residue(s).
-		case -1:
-		case 0:
-		case 1:
-		case 2:
-		case 3:
-		case 4:
-		case 5:
-		case 6:
-		case 7:
-		case 8:
-			// An atom may have several residue names that are actually
-			// equal, so to avoid the same atom from being selected more
-			// than once, we use an array to remember which of the residue
-			// names we have processed.
-			char* done = (char*) calloc(M->index->n, sizeof(int));
-			for (i=0; i<TessAtom_resNameCount(J->atom[k]); i++) {
-				const char* resName = TessAtom_resName(J->atom[k], 0);
-				int	j = ResIndex_find(M->index, resName);
-				if((j == -1) || (done[j])) continue;
-				done[j] = 1;
-				for (it = ResIndex_values(M->index, j); *it != NULL; it++) {
-					A = (*it);
-					if(TessTemplate_match(T,k,A))
-						CandidateSet_addAtom(S, A);
-				}
+		// WARNING: A template atom may have several residue names that 
+		// are actually equal to each other (because TessAtom_parse does not
+		// deduplicate), so to avoid the same atom from being selected more
+		// than once, we use an array to remember which of the residue
+		// names we have already processed.
+		char* done = (char*) calloc(M->index->n, sizeof(int));
+		for (i=0; i<TessAtom_resNameCount(J->atom[k]); i++) {
+			const char* resName = TessAtom_resName(J->atom[k], 0);
+			int	j = ResIndex_find(M->index, resName);
+			if((j == -1) || (done[j])) continue;
+			done[j] = 1;
+			for (it = ResIndex_values(M->index, j); *it != NULL; it++) {
+				A = (*it);
+				if(TessTemplate_match(T,k,A))
+					CandidateSet_addAtom(S, A);
 			}
-			free(done);
-			break;
-
+		}
+		free(done);
+	}
+	else
+	{
 		// For remaining match codes, a match on residue name is not required,
 		// so we just fallback to the original implementation.
-		default:
-			for (m=0; m<n; m++) {
-				A = (Atom*)Molecule_atom(M,m);
-				if(TessTemplate_match(T,k,A))
-						CandidateSet_addAtom(S, A);
-			}
-			break;
+		for (m=0; m<n; m++) {
+			A = (Atom*)Molecule_atom(M,m);
+			if(TessTemplate_match(T,k,A))
+					CandidateSet_addAtom(S, A);
+		}
 	}
 
 	if (S->count > 0)
