@@ -23,7 +23,6 @@
 // ==================================================================
 
 typedef struct _Node Node;
-typedef struct _TessTemplate TessTemplate;
 
 // ==================================================================
 // Local type Node
@@ -36,60 +35,41 @@ struct _Node
 };
 
 // ==================================================================
-// Local type TessTemplate
-// ==================================================================
-// count				Number of atoms in the template
-// atom[k]				Ptr to TessAtom k
-// distance[i][j]		Distance between atoms i and j
-// symbol				The name of the template
-// dim					The dimension of the template (# residues)
-// ==================================================================
-
-struct _TessTemplate
-{
-	int count;
-	TessAtom **atom;
-	double **distance;
-	char *symbol;
-	int dim;
-};
-
-// ==================================================================
 // Oracles of type TessTemplate
 // ==================================================================
 
-static int TessTemplate_count(const Template *T)
+int TessTemplate_count(const Template *T)
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	return J->count;
 }
 
-static int TessTemplate_match(const Template *T,int k,const Atom *A)
+int TessTemplate_match(const Template *T,int k,const Atom *A)
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	return TessAtom_match(J->atom[k],A);
 }
 
-static int TessTemplate_range(const Template *T,int i,int j,double *a,double *b)
+int TessTemplate_range(const Template *T,int i,int j,double *a,double *b)
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	*a = *b = J->distance[i][j];
 	return 1;
 }
 
-static const double *TessTemplate_position(const Template *T, int k)
+const double *TessTemplate_position(const Template *T, int k)
 {
 	const TessTemplate *J=(const TessTemplate*)&T[1];
 	return TessAtom_position(J->atom[k]);
 }
 
-static double TessTemplate_distWeight(const Template *T, int k)
+double TessTemplate_distWeight(const Template *T, int k)
 {
 	const TessTemplate *J=(const TessTemplate*)&T[1];
 	return TessAtom_distWeight(J->atom[k]);
 }
 
-static int TessTemplate_check(const Template *T, Atom **A, int k, int ignore_chain)
+int TessTemplate_check(const Template *T, Atom **A, int k, int ignore_chain)
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	int i;
@@ -131,13 +111,13 @@ static int TessTemplate_check(const Template *T, Atom **A, int k, int ignore_cha
 	return 1;
 }
 
-static const char *TessTemplate_name(const Template *T)
+const char *TessTemplate_name(const Template *T)
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	return J->symbol;
 }
 
-static double TessTemplate_logE(const Template *T,double rmsd, int n)
+double TessTemplate_logE(const Template *T,double rmsd, int n)
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	const double logA = -8.5;
@@ -151,7 +131,7 @@ static double TessTemplate_logE(const Template *T,double rmsd, int n)
 	return logA + alpha*rmsd + beta*(double)J->dim + log((double)n);
 }
 
-static CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int k) 
+CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int k) 
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	CandidateSet *S;
@@ -223,7 +203,7 @@ static CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *
 // Private methods of type TessTemplate
 // ==================================================================
 
-static void TessTemplate_free(Template *T)
+void TessTemplate_free(Template *T)
 {
 	TessTemplate *J;
 	int i;
