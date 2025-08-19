@@ -160,16 +160,15 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 		// deduplicate), so to avoid the same atom from being selected more
 		// than once, we use an array to remember which of the residue
 		// names we have already processed.
-		char* done = (char*) calloc(M->index->n, sizeof(int));
+		char* done = (char*) calloc(M->index->n, sizeof(char));
 		for (i=0; i<TessAtom_resNameCount(J->atom[k]); i++) {
-			const char* resName = TessAtom_resName(J->atom[k], 0);
+			const char* resName = TessAtom_resName(J->atom[k], i);
 			int	j = ResIndex_find(M->index, resName);
 			if((j == -1) || (done[j])) continue;
 			done[j] = 1;
 			for (it = ResIndex_values(M->index, j); *it != NULL; it++) {
 				A = (*it);
-				if(TessTemplate_match(T,k,A))
-					CandidateSet_addAtom(S, A);
+				if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(S, A);
 			}
 		}
 		free(done);
@@ -180,8 +179,7 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 		// so we just fallback to the original implementation.
 		for (m=0; m<n; m++) {
 			A = (Atom*)Molecule_atom(M,m);
-			if(TessTemplate_match(T,k,A))
-					CandidateSet_addAtom(S, A);
+			if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(S, A);
 		}
 	}
 
