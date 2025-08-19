@@ -22,7 +22,10 @@ static int ResNames_compare(const void *pa, const void *pb)
 {
 	const Atom *a = **((const Atom***)pa);
 	const Atom *b = **((const Atom***)pb);
-	return strncasecmp(&a->resName[0], &b->resName[0], 4);
+    int result = strncasecmp(&a->resName[0], &b->resName[0], 4);
+    if (result != 0)
+        return result;
+    return a->serial - b->serial;
 }
 
 extern ResIndex* ResIndex_create(Atom** atoms, int n)
