@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.10)
 project(Jess)
 
+include(CheckSymbolExists)
+check_symbol_exists(alloca "alloca.h" HAVE_ALLOCA)
+
 add_library(jess)
 target_sources(jess PRIVATE
 	src/Annulus.c
@@ -16,6 +19,9 @@ target_sources(jess PRIVATE
 	src/TessTemplate.c
 	src/CandidateSet.c
 	src/ResIndex.c)
+if(HAVE_ALLOCA)
+	target_compile_definitions(jess PUBLIC -DHAVE_ALLOCA)
+endif()
 
 add_executable(jess_bin)
 target_sources(jess_bin PRIVATE src/Main.c)

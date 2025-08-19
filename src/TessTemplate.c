@@ -17,6 +17,10 @@
 #include "Join.h"
 #include "CandidateSet.h"
 
+#if HAVE_ALLOCA
+#include <alloca.h>
+#endif
+
 // ==================================================================
 // Forward declaration of local types
 // ==================================================================
@@ -160,7 +164,12 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 		// deduplicate), so to avoid the same atom from being selected more
 		// than once, we use an array to remember which of the residue
 		// names we have already processed.
+#ifdef HAVE_ALLOCA
+		char* done = (char*) alloca(M->index->n*sizeof(char));
+		memset(done, 0, M->index->n*sizeof(char));
+#else
 		char* done = (char*) calloc(M->index->n, sizeof(char));
+#endif
 		for (i=0; i<TessAtom_resNameCount(J->atom[k]); i++) {
 			const char* resName = TessAtom_resName(J->atom[k], i);
 			int	j = ResIndex_find(M->index, resName);
@@ -171,7 +180,9 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 				if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(S, A);
 			}
 		}
+#ifndef HAVE_ALLOCA
 		free(done);
+#endif
 	}
 	else
 	{
