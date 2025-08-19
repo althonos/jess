@@ -404,4 +404,77 @@ Template *TessTemplate_create(FILE *file,const char *sym)
 	return T;
 }
 
+Template* TessTemplate_copy(const Template *T)
+{
+	int count;
+	int rq;
+	int i,j;
+	Template *T2;
+	TessTemplate *J2;
+	const TessTemplate *J;
+
+	J = (const TessTemplate*)&T[1];
+	count = J->count;
+
+	// Allocate memory for the copy
+
+	rq = sizeof(Template)+sizeof(TessTemplate);
+	rq += count*sizeof(TessAtom*);
+	rq += count*count*sizeof(double);
+	rq += count*sizeof(double*);
+
+	T2 = (Template*)calloc(1,rq);
+	J2 = (TessTemplate*)&T2[1];
+
+	// Set up the method pointers
+
+	T2->free=TessTemplate_free;
+	T2->match=TessTemplate_match;
+	T2->position=TessTemplate_position;
+	T2->count=TessTemplate_count;
+	T2->range=TessTemplate_range;
+	T2->check=TessTemplate_check;
+	T2->name=TessTemplate_name;
+	T2->logE=TessTemplate_logE;
+	T2->distWeight=TessTemplate_distWeight;
+	T2->copy=TessTemplate_copy;
+
+	// Copy atoms
+
+	J2->atom=(TessAtom**)&J2[1];
+	for(i=0; i<count; i++)
+	{
+		J2->atom[i]=TessAtom_copy(J->atom[i]); 
+		if (J2->atom[i] == NULL) {
+			free(T2);
+			return NULL;
+		}
+	}
+
+	// Copy distances
+
+	J2->distance=(double**)&J2->atom[count];
+	J2->distance[0]=(double*)&J2->distance[count];
+	for(i=1; i<count; i++)
+	{
+		J2->distance[i]=(double*)&J2->distance[i-1][count];
+	}
+
+	for (i = 0; i < count; i++)
+	{
+		for (j = 0; j < count; j++)
+		{
+			J2->distance[i][j] = J->distance[i][j];
+		}
+	}
+
+	// Copy data fields
+
+	J2->symbol=(J->symbol==NULL)?NULL:strdup(J->symbol);
+	J2->count=J->count;
+	J2->dim=J->dim;
+
+	return T2;
+}
+
 // ==================================================================

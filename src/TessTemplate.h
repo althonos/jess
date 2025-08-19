@@ -18,6 +18,7 @@
 // ==================================================================
 
 extern Template *TessTemplate_create(FILE*,const char*);
+extern Template *TessTemplate_copy(const Template*);
 
 // ==================================================================
 
