@@ -27,6 +27,8 @@ CandidateSet *CandidateSet_create(const Molecule *M)
     if(!S) return NULL;
 
 	S->atom=(Atom**)calloc(n,sizeof(Atom*));
+	S->coord = NULL;
+	S->count = 0;
     
     return S;
 }
