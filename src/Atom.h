@@ -28,6 +28,9 @@ typedef struct _Atom Atom;
 
 struct _Atom
 {
+	double x[3];
+	float occupancy;
+	float tempFactor;
 	int serial;
 	char name[5];
 	char altLoc;
@@ -38,12 +41,9 @@ struct _Atom
 	//char chainID;
 	int resSeq;
 	char iCode;
-	double x[3];
-	double occupancy;
-	double tempFactor;
 	char segID[4];
 	char element[3];
-	int charge;
+	char charge;
 };
 
 // ==================================================================
