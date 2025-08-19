@@ -41,6 +41,11 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
         return NULL;
     }
 
+    // Initialize fields
+    I->names = NULL;
+    I->offset = NULL;
+    I->atoms = NULL;
+
     // Handle empty case
     if(n==0) {
         I->names = NULL;
