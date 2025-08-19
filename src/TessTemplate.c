@@ -5,13 +5,15 @@
 // Implementation of TessTemplate creation and oracles.
 // ==================================================================
 
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
 #include "TessTemplate.h"
 #include "TessAtom.h"
 #include "Annulus.h"
 #include "Join.h"
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
+#include "CandidateSet.h"
 
 // ==================================================================
 // Forward declaration of local types
@@ -149,6 +151,73 @@ static double TessTemplate_logE(const Template *T,double rmsd, int n)
 	return logA + alpha*rmsd + beta*(double)J->dim + log((double)n);
 }
 
+static CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int k) 
+{
+	const TessTemplate *J = (const TessTemplate*)&T[1];
+	CandidateSet *S;
+	Atom *A;
+	int n = Molecule_count(M);
+	int m;
+	int i;
+
+	if(!(S = CandidateSet_create(M)))
+		return NULL;
+
+	switch(J->atom[k]->code)
+	{
+		case -1:
+		case 0:
+		case 1:
+		case 2:
+		case 3:
+		case 4:
+		case 5:
+		case 6:
+		case 7:
+		case 8:
+			{
+				for (i=0; i<J->atom[k]->resNameCount; i++) {
+					const char* resName = J->atom[k]->resName[i];
+					for (Atom** atom = ResIndex_get(M->index, resName); *atom != NULL; atom++) {
+						A = (*atom);
+						if(TessTemplate_match(T,k,A))
+						{
+							S->atom[S->count]=A;
+							S->count++;
+						}
+					}
+				}
+				break;
+			}
+
+		default:
+			{
+				for (m=0; m<n; m++) {
+					A = (Atom*)Molecule_atom(M,m);
+					if(TessTemplate_match(T,k,A))
+					{
+						S->atom[S->count]=A;
+						S->count++;
+					}
+				}
+				break;
+			}
+	}
+
+	if (S->count > 0) {
+
+		S->atom=(Atom**)realloc(S->atom,sizeof(Atom*)*S->count);
+		S->coord=(double**)calloc(S->count,sizeof(double*));
+
+		for(m=0; m<S->count; m++)
+		{
+			S->coord[m]=S->atom[m]->x;
+		}
+	}
+
+	return S;
+}
+
 // ==================================================================
 // Private methods of type TessTemplate
 // ==================================================================
@@ -269,6 +338,7 @@ Template *TessTemplate_create(FILE *file,const char *sym)
 	T->name=TessTemplate_name;
 	T->logE=TessTemplate_logE;
 	T->distWeight=TessTemplate_distWeight;
+	T->candidates=TessTemplate_candidates;
 
 	// Set up the data fields
 
