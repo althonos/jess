@@ -7,6 +7,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
+#include <stddef.h>
 #include <math.h>
 
 #include "TessTemplate.h"
@@ -136,12 +138,16 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	CandidateSet *S;
 	Atom *A;
+	Atom **it;
 	int n = Molecule_count(M);
 	int m;
 	int i;
+	int j;
 
 	if(!(S = CandidateSet_create(M)))
 		return NULL;
+
+
 
 	switch(TessAtom_code(J->atom[k]))
 	{
@@ -158,10 +164,18 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 		case 6:
 		case 7:
 		case 8:
+			// An atom may have several residue names that are actually
+			// equal, so to avoid the same atom from being selected more
+			// than once, we use an array to remember which of the residue
+			// names we have processed.
+			char* done = (char*) calloc(M->index->n, sizeof(int));
 			for (i=0; i<TessAtom_resNameCount(J->atom[k]); i++) {
-				const char* resName = TessAtom_resName(J->atom[k], i);
-				for (Atom** atom = ResIndex_get(M->index, resName); *atom != NULL; atom++) {
-					A = (*atom);
+				const char* resName = TessAtom_resName(J->atom[k], 0);
+				int	j = ResIndex_find(M->index, resName);
+				if((j == -1) || (done[j])) continue;
+				done[j] = 1;
+				for (it = ResIndex_values(M->index, j); *it != NULL; A = it++) {
+					A = (*it);
 					if(TessTemplate_match(T,k,A))
 					{
 						S->atom[S->count]=A;
@@ -169,6 +183,7 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 					}
 				}
 			}
+			free(done);
 			break;
 
 		// For remaining match codes, a match on residue name is not required,

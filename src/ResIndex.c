@@ -41,6 +41,16 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
         return NULL;
     }
 
+    // Handle empty case
+    if(n==0) {
+        I->names = NULL;
+        I->offset = calloc(2, sizeof(size_t));
+        I->atoms = (Atom**) calloc(1, sizeof(Atom*));
+        I->offset[0] = I->offset[1] = 0;
+        I->atoms[0] = NULL;
+        return I;
+    }
+
     // Allocate auxilliary data to sort names
 
     tmp = (Atom***) calloc(n, sizeof(Atom**));
@@ -57,13 +67,14 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
     // Count number of distinct residue names in molecule
 
     numRes = 1;
-    for (i = 1; i < n; i++) numRes += (strncasecmp((*tmp[i-1])->resName, (*tmp[i])->resName, 4) != 0);
+    for (i = 1; i < n; i++) 
+        numRes += (strncasecmp((*tmp[i-1])->resName, (*tmp[i])->resName, 4) != 0);
     
     // Allocate data for residues
 
     I->names = (char*) calloc(numRes, 4*sizeof(char));
     I->offset = (size_t*) calloc(numRes+1, sizeof(size_t));
-    I->atoms = (Atom**) calloc(n + numRes, sizeof(size_t));
+    I->atoms = (Atom**) calloc(n + numRes, sizeof(Atom*));
     if ((I->names == NULL) || (I->atoms == NULL) || (I->offset == NULL)) {
         free(tmp);
         ResIndex_free(I);
@@ -104,8 +115,7 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
     return I;
 }
 
-extern Atom** ResIndex_get(ResIndex* I, const char resName[4])
-{
+extern int ResIndex_find(ResIndex* I, const char resName[4]) {
     //NB: As the names have been sorted with `qsort`, we can use a binary search
     //    instead of a full scan here (TODO!)
     
@@ -113,11 +123,24 @@ extern Atom** ResIndex_get(ResIndex* I, const char resName[4])
 
     for (i = 0; i < I->n; i++) {
         if (strncasecmp(&I->names[4*i], resName, 4) == 0) {
-            return &I->atoms[I->offset[i]];
+            return i;
         }
     }
 
-    return &I->atoms[I->offset[1] - 1];
+    return -1;
+}
+
+extern Atom** ResIndex_get(ResIndex* I, const char resName[4])
+{
+    int i = ResIndex_find(I, resName);
+    return ResIndex_values(I, i);
+}
+
+extern Atom** ResIndex_values(ResIndex* I, int i)
+{
+    if(i > I->n)
+        return &I->atoms[I->offset[1] - 1];
+    return &I->atoms[I->offset[i]];
 }
 
 extern void ResIndex_free(ResIndex* I)
