@@ -233,16 +233,6 @@ const double *Superposition_rotation(Superposition *S)
 // The superposition algorithm stuff
 // ==================================================================
 
-static double min(double a, double b)
-{
-	return a<b ? a:b;
-}
-
-static double max(double a, double b)
-{
-	return a>b ? a:b;
-}
-
 static const double PRECISION = 1e-12;
 
 static void rotate(double *W, double *P, int ip, int iq)
@@ -485,7 +475,7 @@ static double superpose(double *a,double *b, int n, double *M)
 
 	if(detX<1e-8)
 	{
-		sumE -= (double)2*sqrt(fmin(e[0],min(e[1],e[2])));
+		sumE -= (double)2*sqrt(fmin(e[0],fmin(e[1],e[2])));
 		flag=1;
 	}
 	else
