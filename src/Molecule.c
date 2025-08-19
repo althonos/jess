@@ -26,21 +26,6 @@ struct _Node
 };
 
 // ==================================================================
-// type Molecule
-// ==================================================================
-// count				Number of atoms in the molecule
-// id					The molecule PDB code (if found)
-// atom[k]				Pointer to kth atom in the molecule
-// ==================================================================
-
-struct _Molecule
-{
-	int count;
-	char id[5];
-	Atom *atom[0];
-};
-
-// ==================================================================
 // Methods of type Molecule;
 // ==================================================================
 
@@ -113,6 +98,7 @@ Molecule *Molecule_create(FILE *file, int ignore_endmdl, float conservation_cuto
 	// Create the molecule...
 
 	M = (Molecule*)calloc(1,sizeof(Molecule)+count*sizeof(Atom*));
+	M->index = NULL;
 	M->count=count;
 	strcpy(M->id,pdb);
 
@@ -127,6 +113,10 @@ Molecule *Molecule_create(FILE *file, int ignore_endmdl, float conservation_cuto
 		head=N;
 	}
 
+	// Create an index to access atoms by residue name
+
+	M->index = ResIndex_create(M->atom, M->count);
+
 	// Check memory leaks??
 
 	return M;
@@ -138,6 +128,8 @@ void Molecule_free(Molecule *M)
 
 	if(M)
 	{
+		if(M->index) ResIndex_free(M->index);
+
 		for(k=0; k<M->count; k++)
 		{
 			if(M->atom[k]) free(M->atom[k]);

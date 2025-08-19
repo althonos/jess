@@ -8,14 +8,26 @@
 #ifndef MOLECULE_H
 #define MOLECULE_H
 
-#include "Atom.h"
 #include <stdio.h>
 
+#include "Atom.h"
+#include "ResIndex.h"
+
 // ==================================================================
-// Forward declarations
+// type Molecule
 // ==================================================================
-// Molecule					A complete molecule
+// count				Number of atoms in the molecule
+// id					The molecule PDB code (if found)
+// atom[k]				Pointer to kth atom in the molecule
 // ==================================================================
+
+struct _Molecule
+{
+	int count;
+	char id[5];
+    ResIndex *index;
+	Atom *atom[0];
+};
 
 typedef struct _Molecule Molecule;
 
