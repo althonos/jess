@@ -66,15 +66,11 @@ static void Superposition_compute(Superposition*);
 // ==================================================================
 // Local procedures
 // ==================================================================
-// min(a,b)				Returns min(a,b)
-// max(a,b)				Returns max(a,b)
 // rotate()				Used by subroutine jacobi()
 // jacobi(M,P,v)		Computes diag(v) = P^T M P (M in, P,v out)
 // superpose(a,b,n,M)	Computes superposition of arrays
 // ==================================================================
 
-static double min(double,double);
-static double max(double,double);
 static void rotate(double*,double*,int,int);
 static int jacobi(double*,double*,double*);
 static double superpose(double*,double*,int,double*);
@@ -480,16 +476,16 @@ static double superpose(double *a,double *b, int n, double *M)
 
 	jacobi(XX,P,e);
 
-	e[0]=max(e[0],0);
-	e[1]=max(e[1],0);
-	e[2]=max(e[2],0);
+	e[0]=fmax(e[0],0);
+	e[1]=fmax(e[1],0);
+	e[2]=fmax(e[2],0);
 
 
 	sumE = sqrt(e[0]) + sqrt(e[1]) + sqrt(e[2]);
 
 	if(detX<1e-8)
 	{
-		sumE -= (double)2*sqrt(min(e[0],min(e[1],e[2])));
+		sumE -= (double)2*sqrt(fmin(e[0],min(e[1],e[2])));
 		flag=1;
 	}
 	else
@@ -498,7 +494,7 @@ static double superpose(double *a,double *b, int n, double *M)
 	}
 
 	rmsd = sumA + sumB - (double)2*sumE;
-	rmsd = sqrt(max(rmsd,0)/(double)n);
+	rmsd = sqrt(fmax(rmsd,0)/(double)n);
 
 	// Compute the transform and return the rmsd.
 	// This will fail if XX has rank<3. I need to
