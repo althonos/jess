@@ -88,11 +88,7 @@ struct _KdTreeQuery
 // ==================================================================
 
 static int KdTree_compare(const void*, const void*);
-// #ifdef HAVE_GNU_QSORT_R
 static int KdTree_compare_r(const void*, const void*, void*);
-// #else
-// static int KdTree_compare_r(void*, const void*, const void*);
-// #endif
 
 #ifdef HAVE_THREADLOCALSTORAGE
 static __thread double **KdTree_data;
@@ -275,11 +271,7 @@ static int KdTree_compare(const void *pa, const void *pb)
 	return c<d ? -1 : c>d ? 1 : 0;
 }
 
-// #ifdef HAVE_GNU_QSORT_R
 static int KdTree_compare_r(const void* pa, const void* pb, void* data)
-// #else
-// static int KdTree_compare_r(void* data, const void *pa, const void *pb)
-// #endif
 {
 	struct _KdTreeCompareData _data  = *((struct _KdTreeCompareData*) data);
 	const int a = *((const int*)pa);
@@ -298,7 +290,7 @@ typedef int(*compare_t)(const void*, const void*, void*);
 
 
 static inline void
-__memswap (void *restrict p1, void *restrict p2, size_t n)
+_qselect_memswap(void *restrict p1, void *restrict p2, size_t n)
 {
   while (n > 0)
     {
@@ -311,16 +303,16 @@ __memswap (void *restrict p1, void *restrict p2, size_t n)
 static size_t _qselect_partition(void* base, size_t size, size_t left, size_t right, size_t pivot_index, compare_t compare, void* arg)
 {
 	size_t store_index = left;
-	__memswap(base+right*size, base+pivot_index*size, size);
+	_qselect_memswap(base+right*size, base+pivot_index*size, size);
 	for(size_t i=left; i<right; i++)
 	{
 		if (compare(base+i*size, base+right*size, arg) <= 0)
 		{
-			__memswap(base+i*size, base+store_index*size, size);
+			_qselect_memswap(base+i*size, base+store_index*size, size);
 			store_index += 1; 
 		}
 	}
-	__memswap(base+store_index*size, base+right*size, size);
+	_qselect_memswap(base+store_index*size, base+right*size, size);
 	return store_index;
 }
 
@@ -390,45 +382,21 @@ static KdTreeNode *KdTreeNode_create(int *idx, int n, int type,double **u,int di
 		return N;
 	}
  
-	
+	// 2.5. Now we need to order the indices by coordinate
+	// numbered type.
+
 	struct _KdTreeCompareData _data = { u, type };
 	split = qselect_r(idx, n, sizeof(int), n/2, KdTree_compare_r, &_data);
-	// while(split<n-1 && u[split+1][type]==u[split][type]) split++;
 
-	// printf("(pivot=%g) ", u[idx[split]][type]);
-	// for(i=0;i<n;i++) {
-	// 	if(i == split) printf("|");
-	// 	printf("%g ", u[idx[i]][type]);
-	// }
-	// printf("\n");
+	// 3. The recursive case. Find [n/2] and split the array into
+	// two pieces. Create a node whose splitting value is the median.
+	// But make sure that if there are several entries with the same
+	// coordinate that we take the right-most.
 
-// 	// 2.5. Now we need to order the indices by coordinate
-// 	// numbered type. THIS IS NOT THREAD-SAFE. This kludge
-// 	// is used because it's not possible to pass extra
-// 	// parameters to qsort.
-
-// 	struct _KdTreeCompareData _data = { u, type };
-// #if defined(HAVE_GNU_QSORT_R)
-// 	qsort_r(idx,n,sizeof(int),KdTree_compare_r,&_data);
-// #elif defined(HAVE_APPLE_QSORT_R)
-// 	qsort_r(idx,n,sizeof(int),&_data,KdTree_compare_r);
-// #elif defined(HAVE_WIN32_QSORT_S)
-// 	qsort_s(idx,n,sizeof(int),KdTree_compare_r, &_data);
-// #else
-// 	KdTree_data=u;
-// 	KdTree_index=type;
-// 	qsort(idx,n,sizeof(int),KdTree_compare);
-// #endif
-
-// 	// 3. The recursive case. Find [n/2] and split the array into
-// 	// two pieces. Create a node whose splitting value is the median.
-// 	// But make sure that if there are several entries with the same
-// 	// coordinate that we take the right-most.
-
-// 	split = n/2;
-	N->index=idx[split-1];
-// 	while(split<n-1 && u[split+1][type]==u[split][type]) split++;
 	N->type=type;
+	N->index=idx[split-1];
+	// (FIXME?)
+// 	while(split<n-1 && u[split+1][type]==u[split][type]) split++;
 
 	// Now create the left and right branches of the node.
 
