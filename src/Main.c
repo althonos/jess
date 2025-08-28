@@ -193,6 +193,8 @@ static void search(const char *filename,Jess *J,double tRmsd,double tDistance,do
 
 			printf("ENDMDL\n\n");
 		}
+
+		Superposition_free(sup);
 		killswitch+=1;
 	}
 
@@ -392,6 +394,7 @@ int main(int argc, char **argv)
 	}
 
 	fclose(file);
+	Jess_free(J);
 
 	return 0;
 }
