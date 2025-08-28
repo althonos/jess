@@ -300,17 +300,6 @@ typedef int(*compare_t)(const void*, const void*, void*);
 static inline void
 __memswap (void *restrict p1, void *restrict p2, size_t n)
 {
-//   /* Use multiple small memcpys with constant size to enable inlining on most
-//      targets.  */
-//   enum { SWAP_GENERIC_SIZE = 32 };
-//   unsigned char tmp[SWAP_GENERIC_SIZE];
-//   while (n > SWAP_GENERIC_SIZE)
-//     {
-//       memcpy (tmp, p1, SWAP_GENERIC_SIZE);
-//       p1 = __mempcpy (p1, p2, SWAP_GENERIC_SIZE);
-//       p2 = __mempcpy (p2, tmp, SWAP_GENERIC_SIZE);
-//       n -= SWAP_GENERIC_SIZE;
-//     }
   while (n > 0)
     {
       unsigned char t = ((unsigned char *)p1)[--n];
@@ -321,14 +310,13 @@ __memswap (void *restrict p1, void *restrict p2, size_t n)
 
 static size_t _qselect_partition(void* base, size_t size, size_t left, size_t right, size_t pivot_index, compare_t compare, void* arg)
 {
-	// memcpy(tmp, base + right*size, size); memcpy(base+right*size, base+pivot_index*size, size); memcpy(base+pivot_index*size, tmp, size); 
 	size_t store_index = left;
+	__memswap(base+right*size, base+pivot_index*size, size);
 	for(size_t i=left; i<right; i++)
 	{
-		if (compare(base+i*size, base+pivot_index*size, arg) < 0) // <=?
+		if (compare(base+i*size, base+right*size, arg) <= 0)
 		{
 			__memswap(base+i*size, base+store_index*size, size);
-			// memcpy(tmp, base+i*size, size); memcpy(base+i*size, base+store_index*size, size); memcpy(base+store_index*size, tmp, size);
 			store_index += 1; 
 		}
 	}
@@ -336,9 +324,21 @@ static size_t _qselect_partition(void* base, size_t size, size_t left, size_t ri
 	return store_index;
 }
 
+
+static size_t _qselect_median3(void* base, size_t size, size_t left, size_t right, compare_t compare, void* arg)
+{
+	size_t mid = (left + right + 1) / 2;
+	if ((compare(base+left*size, base+mid*size, arg) > 0) != (compare(base+left*size, base+right*size, arg) > 0))
+		return left;
+	else if ((compare(base+mid*size, base+left*size, arg) < 0) != (compare(base+mid*size, base+right*size, arg) < 0))
+		return mid;
+	else
+		return right;
+}
+
+
 static size_t qselect_r(void* base, size_t n, size_t size, size_t k, compare_t compare, void* arg) 
 {
-	
 	size_t pivot_index;
 	size_t left = 0;
 	size_t right = n-1;
@@ -347,40 +347,18 @@ static size_t qselect_r(void* base, size_t n, size_t size, size_t k, compare_t c
 		if (left == right)
 			return left;
 
-		pivot_index = (left + right + 1) / 2; // FIXME?
+		pivot_index = _qselect_median3(base, size, left, right, compare, arg); 
 		pivot_index = _qselect_partition(base, size, left, right, pivot_index, compare, arg);
 
-		if(pivot_index == k)
-		{
+		if(pivot_index == k) 
 			return pivot_index;
-		}
 		else if (k < pivot_index)
-		{
 			right = pivot_index - 1;
-		}
 		else
-		{
 			left = pivot_index + 1;
-		}
 	}
 }
 
-
-// static int _QuickSelect_partition(int *l, int n, int type, double **u, int piv_idx);
-// {
-// 	int tmp;
-// 	int idx;
-// 	double piv_val;
-
-// 	piv_val = u[l[piv_idx]];
-// 	tmp = l[piv_idx]; l[piv_idx] = l[n-1]; l[n-1] = tmp;
-
-// 	idx = 0;
-// 	for (i = 0; i < n-1; i++)
-// 	{
-// 		if( u[ l[i] ][type] )
-// 	}
-// }
 
 static KdTreeNode *KdTreeNode_create(int *idx, int n, int type,double **u,int dim)
 {
@@ -414,8 +392,15 @@ static KdTreeNode *KdTreeNode_create(int *idx, int n, int type,double **u,int di
  
 	
 	struct _KdTreeCompareData _data = { u, type };
-	qselect_r(idx, n, sizeof(int), n/2, KdTree_compare_r, &_data);
-	split = n / 2;
+	split = qselect_r(idx, n, sizeof(int), n/2, KdTree_compare_r, &_data);
+	// while(split<n-1 && u[split+1][type]==u[split][type]) split++;
+
+	// printf("(pivot=%g) ", u[idx[split]][type]);
+	// for(i=0;i<n;i++) {
+	// 	if(i == split) printf("|");
+	// 	printf("%g ", u[idx[i]][type]);
+	// }
+	// printf("\n");
 
 // 	// 2.5. Now we need to order the indices by coordinate
 // 	// numbered type. THIS IS NOT THREAD-SAFE. This kludge
@@ -441,9 +426,9 @@ static KdTreeNode *KdTreeNode_create(int *idx, int n, int type,double **u,int di
 // 	// coordinate that we take the right-most.
 
 // 	split = n/2;
-// 	N->index=idx[split-1];
+	N->index=idx[split-1];
 // 	while(split<n-1 && u[split+1][type]==u[split][type]) split++;
-// 	N->type=type;
+	N->type=type;
 
 	// Now create the left and right branches of the node.
 
