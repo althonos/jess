@@ -237,46 +237,7 @@ TessAtom *TessAtom_create(const char *s)
 }
 
 //Riziotis edit
-char TessAtom_chainID1(const TessAtom *A)
-{
-	return A->chainID1;
-}
-
-char TessAtom_chainID2(const TessAtom *A)
-{
-	return A->chainID2;
-}
-
-double TessAtom_distWeight(const TessAtom *A)
-{
-	return A->distWeight;
-}
   
-//char TessAtom_chainID(const TessAtom *A)
-//{
-//	return A->chainID;
-//}
-
-const double *TessAtom_position(const TessAtom *A)
-{
-	return A->pos;
-}
-
-void TessAtom_free(TessAtom *A)
-{
-	if(A) free(A);
-}
-
-int TessAtom_resSeq(const TessAtom *A)
-{
-	return A->resSeq;
-}
-
-int TessAtom_code(const TessAtom *A)
-{
-	return A->code;
-}
-
 static int TessAtom_isCarbon(const Atom *A)
 {
 	return A->name[0]=='_' && A->name[1]=='C' ? 1:0;
@@ -307,17 +268,6 @@ static int TessAtom_isInSamePosition(const TessAtom *T, const Atom *A)
 	return 0;
 }
 //End Riziotis
-
-
-const char* TessAtom_resName(const TessAtom* A, int k)
-{
-	return A->resName[k];
-}
-
-int TessAtom_resNameCount(const TessAtom* A)
-{
-	return A->resNameCount;
-}
 
 static int TessAtom_isMainChain(const Atom *A)
 {

@@ -176,7 +176,7 @@ void TessTemplate_candidates(const Template *T, const Molecule *M, int k, Candid
 			done[j] = 1;
 			for (it = ResIndex_values(M->index, j); *it != NULL; it++) {
 				A = (*it);
-				if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(*S, A);
+				if(TessAtom_match(J->atom[k],A)) CandidateSet_addAtom(*S, A);
 			}
 		}
 #ifndef HAVE_ALLOCA
@@ -189,7 +189,7 @@ void TessTemplate_candidates(const Template *T, const Molecule *M, int k, Candid
 		// so we just fallback to the original implementation.
 		for (m=0; m<n; m++) {
 			A = (Atom*)Molecule_atom(M,m);
-			if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(*S, A);
+			if(TessAtom_match(J->atom[k],A)) CandidateSet_addAtom(*S, A);
 		}
 	}
 
