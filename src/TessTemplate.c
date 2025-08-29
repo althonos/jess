@@ -137,10 +137,9 @@ double TessTemplate_logE(const Template *T,double rmsd, int n)
 	return logA + alpha*rmsd + beta*(double)J->dim + log((double)n);
 }
 
-CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int k) 
+void TessTemplate_candidates(const Template *T, const Molecule *M, int k, CandidateSet** S) 
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
-	CandidateSet *S;
 	Atom *A;
 	Atom **it;
 	int n = Molecule_count(M);
@@ -149,8 +148,8 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 	int j;
 	int code;
 
-	if(!(S = CandidateSet_create(M)))
-		return NULL;
+	if(!(*S = CandidateSet_reuse(*S, M)))
+		return;
 
 	// The following match codes require a match on residue name, so we
 	// can use the residue name index to iterate only on atoms from 
@@ -177,7 +176,7 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 			done[j] = 1;
 			for (it = ResIndex_values(M->index, j); *it != NULL; it++) {
 				A = (*it);
-				if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(S, A);
+				if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(*S, A);
 			}
 		}
 #ifndef HAVE_ALLOCA
@@ -190,14 +189,14 @@ CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int 
 		// so we just fallback to the original implementation.
 		for (m=0; m<n; m++) {
 			A = (Atom*)Molecule_atom(M,m);
-			if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(S, A);
+			if(TessTemplate_match(T,k,A)) CandidateSet_addAtom(*S, A);
 		}
 	}
 
-	if (S->count > 0)
-		CandidateSet_recordCoordinates(S);
+	if ((*S)->count > 0)
+		CandidateSet_recordCoordinates(*S);
 
-	return S;
+	// return S;
 }
 
 // ==================================================================

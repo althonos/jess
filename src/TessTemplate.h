@@ -50,7 +50,7 @@ extern int TessTemplate_range(const Template *T,int i,int j,double *a,double *b)
 extern const double *TessTemplate_position(const Template *T, int k);
 extern double TessTemplate_distWeight(const Template *T, int k);
 extern int TessTemplate_check(const Template *T, Atom **A, int k, int ignore_chain);
-CandidateSet* TessTemplate_candidates(const Template *T, const Molecule *M, int k);
+extern void TessTemplate_candidates(const Template *T, const Molecule *M, int k, CandidateSet** S);
 extern const char *TessTemplate_name(const Template *T);
 extern double TessTemplate_logE(const Template *T,double rmsd, int n);
 

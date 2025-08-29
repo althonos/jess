@@ -14,24 +14,44 @@
 #include "Template.h"
 
 // ==================================================================
-// Methods of local type CandidateSet
+// Methods of type CandidateSet
 // ==================================================================
 
-CandidateSet *CandidateSet_create(const Molecule *M)
+CandidateSet *CandidateSet_create()
 {
 	CandidateSet *S;
-	Atom *A;
-	int n = Molecule_count(M);
-	int m;
 
 	S = (CandidateSet*)calloc(1,sizeof(CandidateSet));
     if(!S) return NULL;
 
-	S->atom=(Atom**)calloc(n,sizeof(Atom*));
 	S->coord = NULL;
+	S->atom = NULL;
 	S->count = 0;
+	S->capacity = 0;
     
     return S;
+}
+
+CandidateSet *CandidateSet_reuse(CandidateSet *S, const Molecule *M)
+{
+	int n = Molecule_count(M);
+
+	S->count = 0;
+
+	if(S->capacity < n)
+	{
+		S->capacity = n;
+		S->atom = realloc(S->atom,sizeof(Atom*)*n);
+		S->coord = realloc(S->coord,sizeof(double*)*n);
+
+		if(!S->atom || !S->coord)
+		{
+			CandidateSet_free(S);
+			return NULL;
+		}
+	}
+
+	return S;
 }
 
 void CandidateSet_addAtom(CandidateSet *S, Atom *A)
@@ -43,14 +63,9 @@ void CandidateSet_addAtom(CandidateSet *S, Atom *A)
 void CandidateSet_recordCoordinates(CandidateSet *S)
 {
 	int m;
-	
-	S->atom=(Atom**)realloc(S->atom,sizeof(Atom*)*S->count);
-	S->coord=(double**)calloc(S->count,sizeof(double*));
-
 	for(m=0; m<S->count; m++)
 		S->coord[m]=S->atom[m]->x;
 }
-
 
 void CandidateSet_free(CandidateSet *S)
 {
@@ -60,6 +75,64 @@ void CandidateSet_free(CandidateSet *S)
 		if(S->coord) free(S->coord);
 		free(S);
 	}
+}
+
+// ==================================================================
+// Methods of type CandidateSetArray
+// ==================================================================
+
+CandidateSetArray* CandidateSetArray_create()
+{
+	CandidateSetArray *S;
+
+	S = (CandidateSetArray*) malloc(sizeof(CandidateSetArray));
+    if(!S) 
+		return NULL;
+
+	S->items = NULL;
+	S->count = 0;
+	S->capacity = 0;
+    return S;
+}
+
+void CandidateSetArray_free(CandidateSetArray *C)
+{
+	if(C)
+	{
+		if(C->items)
+		{
+			for(size_t i=0; i<C->count; i++)
+				CandidateSet_free(C->items[i]);
+			free(C->items);
+		}
+		free(C);
+	}
+}
+
+CandidateSet* CandidateSetArray_get(CandidateSetArray *C, int k)
+{
+	if(!C)
+		return NULL;
+
+	if(k>=C->count)
+	{
+		if(C->count>=C->capacity)
+		{
+			C->capacity = C->capacity + (C->capacity >> 3) + 6;
+			C->items = realloc(C->items, C->capacity*sizeof(CandidateSet*));
+			if(!C->items) return NULL;
+		}
+
+		for(int i=k; i<=k; i++)
+		{
+			C->items[C->count] = CandidateSet_create();
+			if(!C->items) return NULL;
+			C->count++;
+		}
+	}
+
+
+	return C->items[k];
 }
 
 // ==================================================================

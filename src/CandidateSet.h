@@ -13,7 +13,7 @@
 #include "Molecule.h"
 
 // ==================================================================
-// Local type CandidateSet
+// Type CandidateSet
 // ==================================================================
 // count				Number of atoms in the set
 // atom[k]				Points to ATOM record for kth candidate
@@ -22,7 +22,8 @@
 
 struct _CandidateSet
 {
-	int count;
+	size_t count;
+	size_t capacity;
 	Atom **atom;
 	double **coord;
 };
@@ -36,9 +37,39 @@ typedef struct _CandidateSet CandidateSet;
 // free(S)				Free candidate set
 // ==================================================================
 
-CandidateSet *CandidateSet_create(const Molecule*);
+CandidateSet *CandidateSet_create();
+CandidateSet *CandidateSet_reuse(CandidateSet *S, const Molecule *M);
 void CandidateSet_addAtom(CandidateSet*, Atom*);
 void CandidateSet_recordCoordinates(CandidateSet*);
 void CandidateSet_free(CandidateSet*);
+
+// ==================================================================
+// Type CandidateSetArray
+// ==================================================================
+// count				Number of atoms in the set
+// atom[k]				Points to ATOM record for kth candidate
+// coord[k]				Points to coordinates for kth candidate
+// ==================================================================
+
+struct _CandidateSetArray
+{
+	size_t count;
+	size_t capacity;
+	CandidateSet **items;
+};
+
+typedef struct _CandidateSetArray CandidateSetArray;
+
+// ==================================================================
+// Declaration of methods of local type CandidateSetArray
+// ==================================================================
+// create()				Create new candidate set array
+// free(C)				Free candidate set array
+// get(C,M,k)		    Get a new candidate set for M at index k
+// ==================================================================
+
+CandidateSetArray *CandidateSetArray_create();
+void CandidateSetArray_free(CandidateSetArray*);
+CandidateSet* CandidateSetArray_get(CandidateSetArray *C, int k);
 
 #endif

@@ -22,12 +22,12 @@ typedef struct _Scanner Scanner;
 // ==================================================================
 // Methods of type Scanner
 // ==================================================================
-// create(M,T,r)			Create object to scan M with template T
+// create(M,T,C,r)			Create object to scan M with template T
 // free(S)					Free memory associated with S
 // next(S)					Next result (an array of Atoms)
 // ==================================================================
 
-extern Scanner *Scanner_create(Molecule*,Template*,double,double);
+extern Scanner *Scanner_create(Molecule*,Template*,CandidateSetArray*,double,double);
 extern void Scanner_free(Scanner*);
 extern Atom **Scanner_next(Scanner*, int);
 extern double Scanner_rmsd(Scanner*);

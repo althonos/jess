@@ -50,7 +50,7 @@ struct _Scanner
 // Methods of type Scanner
 // ==================================================================
 
-Scanner *Scanner_create(Molecule *M, Template *T,double r, double s)
+Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r, double s)
 {
 	Scanner *S;
 	int k,n=T->count(T);
@@ -72,8 +72,14 @@ Scanner *Scanner_create(Molecule *M, Template *T,double r, double s)
 	for(k=0; k<n; k++)
 	{
 		S->index[k]=-1;
-		S->set[k]=T->candidates(T,M,k);
+		S->set[k]=CandidateSetArray_get(C,k);
+		if(!S->set[k])
+		{
+			Scanner_free(S);
+			return NULL;
+		}
 
+		T->candidates(T,M,k, &S->set[k]);
 		if(S->set[k]->count==0)
 		{
 			Scanner_free(S);
@@ -102,7 +108,7 @@ void Scanner_free(Scanner *S)
 
 		for(k=0; k<n; k++)
 		{
-			if(S->set && S->set[k]) CandidateSet_free(S->set[k]);
+			// if(S->set && S->set[k]) CandidateSet_free(S->set[k]); // managed at the JessQuery level
 			if(S->tree && S->tree[k]) KdTree_free(S->tree[k]);
 			if(S->query && S->query[k]) KdTreeQuery_free(S->query[k]);
 		}

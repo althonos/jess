@@ -45,6 +45,7 @@ struct _Jess
 // molecule				The molecule being scanned
 // atoms				Array of Atoms which are hit
 // threshold			The distance threshold
+// candidates			CandidateSetArray to recycle between scanners
 // ==================================================================
 
 struct _JessQuery
@@ -57,6 +58,7 @@ struct _JessQuery
 	Atom **atoms;
 	double threshold;
 	double max_total_threshold;
+	CandidateSetArray *candidates;
 };
 
 // ==================================================================
@@ -115,10 +117,20 @@ JessQuery *Jess_query(Jess *J, Molecule *M,double t,double s)
 	JessQuery *Q;
 
 	Q = (JessQuery*)calloc(1,sizeof(JessQuery));
+	if(!Q)
+		return NULL;
+
 	Q->node=J->head;
 	Q->molecule=M;
 	Q->threshold=t;
 	Q->max_total_threshold=s;
+	
+	Q->candidates=CandidateSetArray_create();
+	if(!Q->candidates)
+	{
+		JessQuery_free(Q);
+		return NULL;
+	}
 
 	return Q;
 }
@@ -131,6 +143,7 @@ void JessQuery_free(JessQuery *Q)
 {
 	if(Q)
 	{
+		CandidateSetArray_free(Q->candidates);
 		Scanner_free(Q->scanner);
 		Superposition_free(Q->super);
 		free(Q);
@@ -190,6 +203,7 @@ int JessQuery_next(JessQuery *Q, int ignore_chain)
 			Q->scanner=Scanner_create(
 				Q->molecule,
 				Q->node->template,
+				Q->candidates,
 				Q->threshold,
 				Q->max_total_threshold
 				);
