@@ -34,7 +34,8 @@ typedef struct _Join Join;
 struct _Join
 {
 	int count;
-	Region *R[0];
+    JoinType type;
+	Annulus *R[0];
 };
 
 // ==================================================================
@@ -44,17 +45,20 @@ struct _Join
 // free(J)					Frees join AND nested regions (J->free)
 // ==================================================================
 
-extern Region *Join_create(Region**,int,JoinType);
-extern void Join_free(Region*);
+extern Join *Join_create(Annulus**,int,JoinType);
+extern void Join_free(Join*);
 
 // ==================================================================
 // Oracles
 // ==================================================================
 
-int Join_oro(Region *R,double *min,double *max,int dim);
-int Join_iro(Region *R,double *min,double *max,int dim);
-int Join_opo(Region *R,double *x,int dim);
-int Join_ipo(Region *R,double *x,int dim);
+// int Join_ro(Region *R,double *min,double *max,int dim);
+// int Join_po(Region *R,double *min,double *max,int dim);
+
+// int Join_oro(Region *R,double *min,double *max,int dim);
+// int Join_iro(Region *R,double *min,double *max,int dim);
+// int Join_opo(Region *R,double *x,int dim);
+// int Join_ipo(Region *R,double *x,int dim);
 
 // ==================================================================
 // The oracles
@@ -67,7 +71,7 @@ static inline int _Join_oro(Join *J,double *min,double *max,int dim)
 
 	for(k=0; k<J->count; k++)
 	{
-		A=(Annulus*) &(J->R[k])[1];
+		A=(Annulus*) J->R[k];
 		if(_Annulus_ro(A,min,max,dim))
 		{
 			return 1;
@@ -84,7 +88,7 @@ static inline int _Join_iro(Join *J,double *min,double *max,int dim)
 
 	for(k=0; k<J->count; k++)
 	{
-		A=(Annulus*) &(J->R[k])[1];
+		A=(Annulus*) J->R[k];
 		if(!(_Annulus_ro(A,min,max,dim)))
 		{
 			return 0;
@@ -101,7 +105,7 @@ static inline int _Join_opo(Join *J,double *x,int dim)
 
 	for(k=0; k<J->count; k++)
 	{
-		A=(Annulus*) &(J->R[k])[1];
+		A=(Annulus*) J->R[k];
 		if(_Annulus_po(A,x,dim))
 		{
 			return 1;
@@ -118,7 +122,7 @@ static inline int _Join_ipo(Join *J,double *x,int dim)
 
 	for(k=0; k<J->count; k++)
 	{
-		A=(Annulus*) &(J->R[k])[1];
+		A=(Annulus*) J->R[k];
 		if(!(_Annulus_po(A,x,dim)))
 		{
 			return 0;
@@ -126,6 +130,16 @@ static inline int _Join_ipo(Join *J,double *x,int dim)
 	}
 
 	return 1;
+}
+
+static inline int _Join_ro(Join *J,double *min, double *max, int dim)
+{
+    return (J->type == innerJoin) ? _Join_iro(J,min,max,dim) : _Join_oro(J,min,max,dim);
+}
+
+static inline int _Join_po(Join *J,double *x, int dim)
+{
+    return (J->type == innerJoin) ? _Join_ipo(J,x,dim) : _Join_opo(J,x,dim);
 }
 
 // ==================================================================

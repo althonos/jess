@@ -30,19 +30,19 @@ int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d)
 // Methods of for regions of type Annulus
 // ==================================================================
 
-Region *Annulus_create(double *u, double a, double b, int d)
+Annulus *Annulus_create(double *u, double a, double b, int d)
 {
 	Annulus *A;
 	Region *R;
 	int rq;
 	double tmp;
 
-	rq = sizeof(Region)+sizeof(Annulus)+d*sizeof(double);
-	R = (Region*)calloc(1,rq);
-	A = (Annulus*)&R[1];
-	R->intersectionQ=Annulus_ro;
-	R->inclusionQ=Annulus_po;
-	R->free=Annulus_free;
+	rq = sizeof(Annulus)+d*sizeof(double);
+	// R = (Region*)calloc(1,rq);
+	A = (Annulus*)calloc(1,rq);
+	// R->intersectionQ=Annulus_ro;
+	// R->inclusionQ=Annulus_po;
+	// R->free=Annulus_free;
 
 	if(b<a)
 	{
@@ -60,12 +60,12 @@ Region *Annulus_create(double *u, double a, double b, int d)
 	A->max=b*b;
 	A->dim=d;
 
-	return R;
+	return A;
 }
 
-void Annulus_free(Region *R)
+void Annulus_free(Annulus *A)
 {
-	if(R) free(R);
+	if(A) free(A);
 }
 
 // ==================================================================

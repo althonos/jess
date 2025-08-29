@@ -37,8 +37,8 @@ typedef struct _Annulus Annulus;
 // free(A)				Free the region given (or use R->free)
 // ==================================================================
 
-extern Region *Annulus_create(double*,double,double,int);
-extern void Annulus_free(Region*);
+extern Annulus *Annulus_create(double*,double,double,int);
+extern void Annulus_free(Annulus*);
 
 // ==================================================================
 // Local "functions"

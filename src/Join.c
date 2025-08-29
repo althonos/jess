@@ -41,49 +41,33 @@ int Join_ipo(Region *R,double *x,int dim)
 // Construction and destruction
 // ==================================================================
 
-Region *Join_create(Region **S,int count,JoinType type)
+Join *Join_create(Annulus **S,int count,JoinType type)
 {
-	Region *R;
 	Join *J;
 	int rq;
 
-	rq = sizeof(Region)+sizeof(Join)+sizeof(Region*)*count;
-	R = (Region*)calloc(1,rq);
-	J = (Join*)&R[1];
-	memcpy(J->R,S,sizeof(Region*)*count);
+	rq = sizeof(Join)+sizeof(Annulus*)*count;
+	J = (Join*)calloc(1,rq);
+	if(!J) return NULL;
 
-	R->free=Join_free;
 	J->count=count;
+	J->type=type;
+	memcpy(J->R,S,sizeof(Annulus*)*count);
 
-	if(type==innerJoin)
-	{
-		R->intersectionQ = Join_iro;
-		R->inclusionQ = Join_ipo;
-	}
-	else // if type==outerJoin
-	{
-		R->intersectionQ = Join_oro;
-		R->inclusionQ = Join_opo;
-	}
-
-	return R;
+	return J;
 }
 
-void Join_free(Region *R)
+void Join_free(Join *J)
 {
-	Join *J;
 	int k;
 
-	if(R)
+	if(J)
 	{
-		J = (Join*)&R[1];
-
 		for(k=0; k<J->count; k++)
 		{
-			if(J->R[k]) J->R[k]->free(J->R[k]);
+			if(J->R[k]) Annulus_free(J->R[k]);
 		}
-
-		free(R);
+		free(J);
 	}
 }
 

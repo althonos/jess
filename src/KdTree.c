@@ -82,7 +82,7 @@ struct _KdTree
 struct _KdTreeQuery
 {
 	KdTree *tree;
-	Region *region;
+	Join *region;
 	int count;
 	index_t stack[0];
 };
@@ -185,7 +185,7 @@ void KdTree_free(KdTree *K)
 	}
 }
 
-KdTreeQuery *KdTree_query(KdTree *K, Region *R)
+KdTreeQuery *KdTree_query(KdTree *K, Join *J)
 {
 	KdTreeQuery *Q;
 	int rq;
@@ -194,7 +194,7 @@ KdTreeQuery *KdTree_query(KdTree *K, Region *R)
 
 	Q = (KdTreeQuery*)calloc(1,rq);
 	Q->tree=K;
-	Q->region=R;
+	Q->region=J;
 	Q->count=1;
 	Q->stack[0]=K->root;
 
@@ -208,7 +208,7 @@ KdTreeQuery *KdTree_query(KdTree *K, Region *R)
 int KdTreeQuery_next(KdTreeQuery *Q)
 {
 	KdTreeNode *N;
-	Region *R = Q->region;
+	Join *J = Q->region;
 	index_t*stack=&(Q->stack[0]);
 	int dim = Q->tree->dim;
 	int *count = &(Q->count);
@@ -229,7 +229,7 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 
 		if(N->type<0)
 		{
-			if(R->inclusionQ(R,N->min,dim))
+			if(_Join_po(J,N->min,dim))
 			{
 				return N->index;
 			}
@@ -244,7 +244,7 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 		// the node's region then we can remove it
 		// and continue with the rest of the stack.
 
-		if(!R->intersectionQ(R,N->min,N->max,dim))
+		if(!_Join_ro(J,N->min,N->max,dim))
 		{
 			continue;
 		}
@@ -264,7 +264,7 @@ void KdTreeQuery_free(KdTreeQuery *Q)
 {
 	if(Q)
 	{
-		if(Q->region) Q->region->free(Q->region);
+		if(Q->region) Join_free(Q->region);
 		free(Q);
 	}
 }

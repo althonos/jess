@@ -40,7 +40,7 @@ struct _Scanner
 	KdTreeQuery **query;
 	int *index;
 	Atom **atom;
-	Region **region;
+	Annulus **region;
 	int count;
 	double threshold;
 	double max_total_threshold;
@@ -62,7 +62,7 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 	S->query=(KdTreeQuery**)calloc(n,sizeof(KdTreeQuery*));
 	S->index=(int*)calloc(n,sizeof(int));
 	S->atom=(Atom**)calloc(n,sizeof(Atom*));
-	S->region=(Region**)calloc(n,sizeof(Region*));
+	S->region=(Annulus**)calloc(n,sizeof(Annulus*));
 
 	S->template=T;
 	S->threshold=r;
@@ -128,7 +128,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 {
 	int j,k;
 	double min,max;
-	Region *J;
+	Join *J;
 
 	double dynamic_threshold = S->threshold;
 

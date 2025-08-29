@@ -9,6 +9,7 @@
 #define KDTREE_H
 
 #include "Region.h"
+#include "Join.h"
 
 // ==================================================================
 // Forward declarations
@@ -30,7 +31,7 @@ typedef struct _KdTreeQuery KdTreeQuery;
 
 extern KdTree *KdTree_create(double**,int,int);
 extern void KdTree_free(KdTree*);
-extern KdTreeQuery *KdTree_query(KdTree*,Region*);
+extern KdTreeQuery *KdTree_query(KdTree*,Join*);
 
 // ==================================================================
 // Methods of type KdTreeQuery
