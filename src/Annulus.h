@@ -11,6 +11,8 @@
 #include "Region.h"
 #include <math.h>
 
+#define ANNULUS_DIM 3
+
 // ==================================================================
 // type Annulus
 // ==================================================================
@@ -22,7 +24,7 @@
 
 struct _Annulus
 {
-	double *centre;
+	double centre[ANNULUS_DIM];
 	double min;
 	double max;
 	int dim;
@@ -63,7 +65,7 @@ static inline int _Annulus_po(Annulus *A, double *x, int d)
 
 	if(A->dim!=d) return 0;
 
-	for(sum=0.0,i=0; i<d; i++)
+	for(sum=0.0,i=0; i<ANNULUS_DIM; i++)
 	{
 		tmp = A->centre[i]-x[i];
 		sum += tmp*tmp;
@@ -86,7 +88,7 @@ static inline int _Annulus_ro(Annulus *A, double *minBox, double *maxBox, int d)
 
 	minSum=0.0;
 	maxSum=0.0;
-	for(i=0; i<d; i++)
+	for(i=0; i<ANNULUS_DIM; i++)
 	{
 		t1 = A->centre[i]-minBox[i];
 		t2 = A->centre[i]-maxBox[i];
