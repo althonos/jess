@@ -11,94 +11,30 @@
 #include <string.h>
 
 // ==================================================================
-// type Join
-// ==================================================================
-// count				The number of regions in the join
-// R[k]					The kth region in the join
+// Oracles for type Join
 // ==================================================================
 
-typedef struct _Join Join;
-
-struct _Join
+int Join_oro(Region *R,double *min,double *max,int dim) 
 {
-	int count;
-	Region *R[0];
-};
-
-// ==================================================================
-// The oracles
-// ==================================================================
-
-int Join_oro(Region *R,double *min,double *max,int dim)
-{
-	Annulus* A;
 	Join *J=(Join*)&R[1];
-	int k;
-
-	for(k=0; k<J->count; k++)
-	{
-		A=(Annulus*) &(J->R[k])[1];
-		if(_Annulus_ro(A,min,max,dim))
-		{
-			return 1;
-		}
-	}
-
-	return 0;
+	return _Join_oro(J,min,max,dim);
 }
 
-int Join_iro(Region *R,double *min,double *max,int dim)
+int Join_iro(Region *R,double *min,double *max,int dim) 
 {
-	Annulus* A;
 	Join *J=(Join*)&R[1];
-	int k;
-
-	for(k=0; k<J->count; k++)
-	{
-		A=(Annulus*) &(J->R[k])[1];
-		if(!(_Annulus_ro(A,min,max,dim)))
-		{
-			return 0;
-		}
-	}
-
-	return 1;
+	return _Join_iro(J,min,max,dim);
 }
-
 int Join_opo(Region *R,double *x,int dim)
 {
-	Annulus* A;
 	Join *J=(Join*)&R[1];
-	int k;
-
-	for(k=0; k<J->count; k++)
-	{
-		A=(Annulus*) &(J->R[k])[1];
-		if(_Annulus_po(A,x,dim))
-		{
-			return 1;
-		}
-	}
-
-	return 0;
+	return _Join_opo(J,x,dim);
 }
 
 int Join_ipo(Region *R,double *x,int dim)
 {
-	Annulus* A;
 	Join *J=(Join*)&R[1];
-	int k;
-
-	for(k=0; k<J->count; k++)
-	{
-		A=(Annulus*) &(J->R[k])[1];
-		if(!(_Annulus_po(A,x,dim)))
-		{
-			return 0;
-		}
-	}
-
-	return 1;
+	return _Join_ipo(J,x,dim);
 }
 
 // ==================================================================

@@ -10,6 +10,7 @@
 #ifndef JOIN_H
 #define JOIN_H
 
+#include "Annulus.h"
 #include "Region.h"
 
 // ==================================================================
@@ -20,6 +21,21 @@
 // ==================================================================
 
 typedef enum {innerJoin,outerJoin} JoinType;
+
+// ==================================================================
+// type Join
+// ==================================================================
+// count				The number of regions in the join
+// R[k]					The kth region in the join
+// ==================================================================
+
+typedef struct _Join Join;
+
+struct _Join
+{
+	int count;
+	Region *R[0];
+};
 
 // ==================================================================
 // Construction methods for region type Join
@@ -39,6 +55,78 @@ int Join_oro(Region *R,double *min,double *max,int dim);
 int Join_iro(Region *R,double *min,double *max,int dim);
 int Join_opo(Region *R,double *x,int dim);
 int Join_ipo(Region *R,double *x,int dim);
+
+// ==================================================================
+// The oracles
+// ==================================================================
+
+static inline int _Join_oro(Join *J,double *min,double *max,int dim)
+{
+	Annulus* A;
+	int k;
+
+	for(k=0; k<J->count; k++)
+	{
+		A=(Annulus*) &(J->R[k])[1];
+		if(_Annulus_ro(A,min,max,dim))
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static inline int _Join_iro(Join *J,double *min,double *max,int dim)
+{
+	Annulus* A;
+	int k;
+
+	for(k=0; k<J->count; k++)
+	{
+		A=(Annulus*) &(J->R[k])[1];
+		if(!(_Annulus_ro(A,min,max,dim)))
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
+
+static inline int _Join_opo(Join *J,double *x,int dim)
+{
+	Annulus* A;
+	int k;
+
+	for(k=0; k<J->count; k++)
+	{
+		A=(Annulus*) &(J->R[k])[1];
+		if(_Annulus_po(A,x,dim))
+		{
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
+static inline int _Join_ipo(Join *J,double *x,int dim)
+{
+	Annulus* A;
+	int k;
+
+	for(k=0; k<J->count; k++)
+	{
+		A=(Annulus*) &(J->R[k])[1];
+		if(!(_Annulus_po(A,x,dim)))
+		{
+			return 0;
+		}
+	}
+
+	return 1;
+}
 
 // ==================================================================
 
