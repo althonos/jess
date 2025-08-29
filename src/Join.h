@@ -32,6 +32,15 @@ extern Region *Join_create(Region**,int,JoinType);
 extern void Join_free(Region*);
 
 // ==================================================================
+// Oracles
+// ==================================================================
+
+int Join_oro(Region *R,double *min,double *max,int dim);
+int Join_iro(Region *R,double *min,double *max,int dim);
+int Join_opo(Region *R,double *x,int dim);
+int Join_ipo(Region *R,double *x,int dim);
+
+// ==================================================================
 
 #endif
 

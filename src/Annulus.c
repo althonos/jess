@@ -38,7 +38,7 @@ Annulus;
 // Oracles for type Annulus
 // ==================================================================
 
-static int Annulus_po(Region *vA, double *x, int d)
+int Annulus_po(Region *vA, double *x, int d)
 {
 	Annulus *A=(Annulus*)&vA[1];
 	double tmp,sum;
@@ -57,7 +57,7 @@ static int Annulus_po(Region *vA, double *x, int d)
 	return sum<A->min || sum>A->max ? 0:1;
 }
 
-static int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d)
+int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d)
 {
 	Annulus *A=(Annulus*)&vA[1];
 	double minSum;

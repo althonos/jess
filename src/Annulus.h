@@ -21,6 +21,13 @@ extern Region *Annulus_create(double*,double,double,int);
 extern void Annulus_free(Region*);
 
 // ==================================================================
+// Oracles
+// ==================================================================
+
+int Annulus_po(Region *vA, double *x, int d);
+int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d);
+
+// ==================================================================
 
 #endif
 
