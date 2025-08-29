@@ -6,6 +6,7 @@
 // ==================================================================
 
 #include "Join.h"
+#include "Annulus.h"
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,12 +31,14 @@ struct _Join
 
 int Join_oro(Region *R,double *min,double *max,int dim)
 {
+	Annulus* A;
 	Join *J=(Join*)&R[1];
 	int k;
 
 	for(k=0; k<J->count; k++)
 	{
-		if(J->R[k]->intersectionQ(J->R[k],min,max,dim))
+		A=(Annulus*) &(J->R[k])[1];
+		if(_Annulus_ro(A,min,max,dim))
 		{
 			return 1;
 		}
@@ -46,12 +49,14 @@ int Join_oro(Region *R,double *min,double *max,int dim)
 
 int Join_iro(Region *R,double *min,double *max,int dim)
 {
+	Annulus* A;
 	Join *J=(Join*)&R[1];
 	int k;
 
 	for(k=0; k<J->count; k++)
 	{
-		if(!(J->R[k]->intersectionQ(J->R[k],min,max,dim)))
+		A=(Annulus*) &(J->R[k])[1];
+		if(!(_Annulus_ro(A,min,max,dim)))
 		{
 			return 0;
 		}
@@ -62,12 +67,14 @@ int Join_iro(Region *R,double *min,double *max,int dim)
 
 int Join_opo(Region *R,double *x,int dim)
 {
+	Annulus* A;
 	Join *J=(Join*)&R[1];
 	int k;
 
 	for(k=0; k<J->count; k++)
 	{
-		if(J->R[k]->inclusionQ(J->R[k],x,dim))
+		A=(Annulus*) &(J->R[k])[1];
+		if(_Annulus_po(A,x,dim))
 		{
 			return 1;
 		}
@@ -78,12 +85,14 @@ int Join_opo(Region *R,double *x,int dim)
 
 int Join_ipo(Region *R,double *x,int dim)
 {
+	Annulus* A;
 	Join *J=(Join*)&R[1];
 	int k;
 
 	for(k=0; k<J->count; k++)
 	{
-		if(!(J->R[k]->inclusionQ(J->R[k],x,dim)))
+		A=(Annulus*) &(J->R[k])[1];
+		if(!(_Annulus_po(A,x,dim)))
 		{
 			return 0;
 		}
