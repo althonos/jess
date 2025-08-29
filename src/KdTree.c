@@ -410,7 +410,7 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u
 	// numbered type.
 
 	struct _KdTreeCompareData _data = { u, type };
-	split = qselect_r(idx, n, sizeof(int), (n+1)/2, KdTree_compare_r, &_data);
+	split = qselect_r(idx, n, sizeof(int), n/2, KdTree_compare_r, &_data);
 
 	// 3. The recursive case. Find [n/2] and split the array into
 	// two pieces. Create a node whose splitting value is the median.
@@ -420,7 +420,7 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u
 	N->type=type;
 	N->index=idx[split-1];
 	// (FIXME?)
-	// while(split<n-1 && u[split+1][type]==u[split][type]) split++;
+	while(split<n-1 && u[split+1][type]==u[split][type]) split++;
 
 	// Now create the left and right branches of the node.
 
