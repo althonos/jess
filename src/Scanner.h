@@ -15,8 +15,10 @@
 // Forward declarations
 // ==================================================================
 // Scanner					A Jess scan on a molecule
+// ScannerData              Reusable auxiliary storage for the scanner
 // ==================================================================
 
+typedef struct _ScannerData ScannerData;
 typedef struct _Scanner Scanner;
 
 // ==================================================================
@@ -27,11 +29,22 @@ typedef struct _Scanner Scanner;
 // next(S)					Next result (an array of Atoms)
 // ==================================================================
 
-extern Scanner *Scanner_create(Molecule*,Template*,CandidateSetArray*,double,double);
+extern Scanner *Scanner_create(Molecule*,Template*,ScannerData*,double,double);
 extern void Scanner_free(Scanner*);
 extern Atom **Scanner_next(Scanner*, int);
 extern double Scanner_rmsd(Scanner*);
 
+// ==================================================================
+// Methods of type ScannerData
+// ==================================================================
+// create()     			Create object to store reusable scanner data
+// free(D)					Free memory associated with D
+// resize(D,n)              Resize D for a template of size n
+// ==================================================================
+
+extern ScannerData *ScannerData_create();
+extern void ScannerData_free(ScannerData* D);
+extern int ScannerData_resize(ScannerData* D, int n);
 // ==================================================================
 
 #endif

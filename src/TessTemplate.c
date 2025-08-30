@@ -148,7 +148,7 @@ void TessTemplate_candidates(const Template *T, const Molecule *M, int k, Candid
 	int j;
 	int code;
 
-	if(!(*S = CandidateSet_reuse(*S, M)))
+	if(!(*S = CandidateSet_reuse(*S, n)))
 		return;
 
 	// The following match codes require a match on residue name, so we

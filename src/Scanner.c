@@ -17,6 +17,23 @@
 #include "CandidateSet.h"
 
 // ==================================================================
+// type ScannerData
+//===================================================================
+
+struct _ScannerData
+{
+	size_t count;
+	size_t capacity;
+	CandidateSet** candidates;
+	int* index;
+	Atom** atom;
+	Join** regions;
+	bool *active;
+	KdTree **trees;
+	KdTreeQuery **queries;
+};
+
+// ==================================================================
 // type Scanner
 //===================================================================
 // template				The template object
@@ -52,20 +69,23 @@ struct _Scanner
 // Methods of type Scanner
 // ==================================================================
 
-Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r, double s)
+Scanner *Scanner_create(Molecule *M, Template *T, ScannerData* D, double r, double s)
 {
 	Scanner *S;
 	int k,n=T->count(T);
 	int m;
 
+	if(!D) return NULL;
+	if(ScannerData_resize(D,n)!=0) return NULL;
+
 	S=(Scanner*)calloc(1,sizeof(Scanner));
-	S->set=(CandidateSet**)calloc(n,sizeof(CandidateSet*));
-	S->tree=(KdTree**)calloc(n,sizeof(KdTree*));
-	S->query=(KdTreeQuery**)calloc(n,sizeof(KdTreeQuery*));
-	S->index=(int*)calloc(n,sizeof(int));
-	S->atom=(Atom**)calloc(n,sizeof(Atom*));
-	S->regions=(Join**)calloc(n,sizeof(Join*));
-	S->active=(bool*)calloc(n,sizeof(bool));
+	S->set=D->candidates;
+	S->tree=D->trees;
+	S->query=D->queries;
+	S->index=D->index;
+	S->atom=D->atom;
+	S->regions=D->regions;
+	S->active=D->active;
 
 	S->template=T;
 	S->threshold=r;
@@ -74,21 +94,9 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 
 	for(k=0; k<n; k++)
 	{
-		S->regions[k]=Join_allocate(k,innerJoin);
-		if(!S->regions[k])
-		{
-			Scanner_free(S);
-			return NULL;
-		}
-
 		S->index[k]=-1;
-		S->set[k]=CandidateSetArray_get(C,k);
-		if(!S->set[k])
-		{
-			Scanner_free(S);
-			return NULL;
-		}
-
+		S->active[k]=false;
+		
 		T->candidates(T,M,k, &S->set[k]);
 		if(S->set[k]->count==0)
 		{
@@ -96,15 +104,13 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 			return NULL;
 		}
 
-		S->tree[k]=KdTree_create(S->set[k]->coord,S->set[k]->count,3);
+		S->tree[k]=KdTree_reuse(S->tree[k],S->set[k]->coord,S->set[k]->count,3);
 		if(!S->tree[k])
 		{
 			Scanner_free(S);
 			return NULL;
 		}
 
-		S->query[k]=NULL;
-		S->active[k]=false;
 	}
 
 	if(S->count>0 && S->set[0]->count>0)
@@ -118,28 +124,8 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 
 void Scanner_free(Scanner *S)
 {
-	int k,n;
-
 	if(S)
 	{
-		n = S->template->count(S->template);
-
-		for(k=0; k<n; k++)
-		{
-			// if(S->set && S->set[k]) CandidateSet_free(S->set[k]); // managed at the JessQuery level
-			if(S->tree && S->tree[k]) KdTree_free(S->tree[k]);
-			if(S->query && S->query[k]) KdTreeQuery_free(S->query[k]);
-			if(S->regions && S->regions[k]) Join_free(S->regions[k]);
-		}
-
-		if(S->set) free(S->set);
-		if(S->query) free(S->query);
-		if(S->tree) free(S->tree);
-		if(S->atom) free(S->atom);
-		if(S->index) free(S->index);
-		if(S->regions) free(S->regions);
-		if(S->active) free(S->active);
-
 		free(S);
 	}
 }
@@ -254,6 +240,101 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 	// Otherwise, the atoms are listed in S->atom.
 
 	return S->atom;
+}
+
+// ==================================================================
+// Methods of type ScannerData
+// ==================================================================
+
+ScannerData *ScannerData_create()
+{
+	ScannerData* D = malloc(sizeof(ScannerData));
+	if(!D) return NULL;
+	D->count=0;
+	D->capacity=0;
+	D->candidates=NULL;
+	D->index=NULL;
+	D->atom=NULL;
+	D->regions=NULL;
+	D->active=NULL;
+	D->queries=NULL;
+	D->trees=NULL;
+	return D;
+}
+
+void ScannerData_free(ScannerData* D)
+{
+	if(D)
+	{
+		if(D->candidates) 
+		{
+			for(int i=0;i<D->capacity;i++) CandidateSet_free(D->candidates[i]);
+			free(D->candidates);
+		}
+		if(D->regions)
+		{
+			for(int i=0;i<D->capacity;i++) Join_free(D->regions[i]);
+			free(D->regions);
+		}
+		if(D->queries)
+		{
+			for(int i=0;i<D->capacity;i++) KdTreeQuery_free(D->queries[i]);
+			free(D->queries);
+		}
+		if(D->trees)
+		{
+			for(int i=0;i<D->capacity;i++) KdTree_free(D->trees[i]);
+			free(D->trees);
+		}
+		if(D->index) free(D->index);
+		if(D->atom) free(D->atom);
+		if(D->active) free(D->active);
+		free(D);
+	}
+}
+
+int ScannerData_resize(ScannerData* D, int n)
+{
+	if(D->capacity<n)
+	{
+		D->candidates=(CandidateSet**)realloc(D->candidates,n*sizeof(CandidateSet*));
+		if(!D->candidates) return -1;
+		for(int i=D->capacity;i<n;i++)
+		{
+			D->candidates[i]=CandidateSet_create();
+			if(!D->candidates[i]) return -1;
+		}
+
+		D->regions=(Join**)realloc(D->regions,n*sizeof(Join*));
+		if(!D->regions) return -1;
+		for(int i=D->capacity;i<n;i++)
+		{
+			D->regions[i]=Join_allocate(i,innerJoin);
+			if(!D->regions[i]) return -1;
+		}
+
+		D->trees=(KdTree**)realloc(D->trees,n*sizeof(KdTree*));
+		if(!D->trees) return -1;
+		for(int i=D->capacity;i<n;i++) D->trees[i]=NULL;
+
+		D->queries=(KdTreeQuery**)realloc(D->queries,n*sizeof(KdTreeQuery*));
+		if(!D->queries) return -1;
+		for(int i=D->capacity;i<n;i++) D->queries[i]=NULL;
+
+		D->index=(int*)realloc(D->index,n*sizeof(int));
+		if(!D->index) return -1;
+
+		D->atom=(Atom**)realloc(D->atom,n*sizeof(Atom*));
+		if(!D->atom) return -1;
+
+		D->active=(bool*)realloc(D->active,n*sizeof(bool));
+		if(!D->active) return -1;
+
+		D->capacity=n;
+	}
+
+	D->count=n;
+	return 0;
 }
 
 // ==================================================================

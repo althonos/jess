@@ -32,10 +32,8 @@ CandidateSet *CandidateSet_create()
     return S;
 }
 
-CandidateSet *CandidateSet_reuse(CandidateSet *S, const Molecule *M)
+CandidateSet *CandidateSet_reuse(CandidateSet *S, int n)
 {
-	int n = Molecule_count(M);
-
 	S->count = 0;
 
 	if(S->capacity < n)
@@ -52,19 +50,6 @@ CandidateSet *CandidateSet_reuse(CandidateSet *S, const Molecule *M)
 	}
 
 	return S;
-}
-
-void CandidateSet_addAtom(CandidateSet *S, Atom *A)
-{
-	S->atom[S->count]=A;
-	S->count++;
-}
-
-void CandidateSet_recordCoordinates(CandidateSet *S)
-{
-	int m;
-	for(m=0; m<S->count; m++)
-		S->coord[m]=S->atom[m]->x;
 }
 
 void CandidateSet_free(CandidateSet *S)

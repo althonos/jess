@@ -16,6 +16,7 @@
 // Type CandidateSet
 // ==================================================================
 // count				Number of atoms in the set
+// capacity				Max number of elements allocated in atom[]
 // atom[k]				Points to ATOM record for kth candidate
 // coord[k]				Points to coordinates for kth candidate
 // ==================================================================
@@ -33,15 +34,29 @@ typedef struct _CandidateSet CandidateSet;
 // ==================================================================
 // Declaration of methods of local type CandidateSet
 // ==================================================================
-// create(M,T,k)		Create from molecule M, atom k of T
+// create()				Create new empty candidate set
+// reuse(S,n)			Reuse candidate set S for up to n atoms
 // free(S)				Free candidate set
+// recordCoordinates(S)	Record coordinates from the set atoms
+// addAtom(S,A)			Add atom A to candidate set S
 // ==================================================================
 
 CandidateSet *CandidateSet_create();
-CandidateSet *CandidateSet_reuse(CandidateSet *S, const Molecule *M);
-void CandidateSet_addAtom(CandidateSet*, Atom*);
-void CandidateSet_recordCoordinates(CandidateSet*);
+CandidateSet *CandidateSet_reuse(CandidateSet *S, int n);
 void CandidateSet_free(CandidateSet*);
+
+static inline void CandidateSet_recordCoordinates(CandidateSet *S)
+{
+	int m;
+	for(m=0; m<S->count; m++)
+		S->coord[m]=S->atom[m]->x;
+}
+
+static inline void CandidateSet_addAtom(CandidateSet *S, Atom *A)
+{
+	S->atom[S->count]=A;
+	S->count++;
+}
 
 // ==================================================================
 // Type CandidateSetArray

@@ -25,11 +25,13 @@ typedef struct _KdTreeQuery KdTreeQuery;
 // Methods of type KdTree
 // ==================================================================
 // create(u,n,k)			Create kd-tree on u[0],...,u[n-1]
+// reuse(K,u,n,k)           Reuse K to create a kd-tree on u
 // free(K)					Free the kd-tree K
 // query(K,R)				Initialise a query object (see code)
 // ==================================================================
 
 extern KdTree *KdTree_create(double**,int,int);
+extern KdTree *KdTree_reuse(KdTree *K, double **u, int n, int d);
 extern void KdTree_free(KdTree*);
 extern KdTreeQuery *KdTree_query(KdTree*,Join*);
 

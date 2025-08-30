@@ -88,6 +88,7 @@ struct _KdTreeQuery
 	KdTree *tree;
 	Join *region;
 	int count;
+	int maxdepth;
 	index_t stack[0];
 };
 
@@ -139,11 +140,32 @@ KdTree *KdTree_create(double **u, int n, int d)
 	// 1. Create memory for the object.
 
 	K = (KdTree*)malloc(sizeof(KdTree));
-	K->dim=d;
-	K->nodes=NULL;
-	K->count=0;
-	K->capacity=0;
+	if(!K) return NULL;
+
 	K->root=NO_NODE;
+	K->nodes=NULL;
+	K->capacity=0;
+	K->count=0;
+
+	return KdTree_reuse(K,u,n,d);
+}
+
+KdTree *KdTree_reuse(KdTree *K, double **u, int n, int d)
+{
+	int i,j;
+	int *tmp;
+
+	if(!K) return KdTree_create(u,n,d);
+
+	if((n<1 || d<1 || !u) || (d>MAX_DIM)) {
+		KdTree_free(K);
+		return NULL;
+	}
+
+	K->dim=d;
+	K->count=0;
+	K->root=NO_NODE;
+	memset(K->nodes,0,sizeof(KdTreeNode)*K->capacity);
 
 	// 3a. Create a temporary array to hold indices
 
@@ -154,7 +176,7 @@ KdTree *KdTree_create(double **u, int n, int d)
 	// of order at most n.log(n)^2, assuming that qsort
 	// always manages n.log(n) and d is constant.
 
-	K->root = KdTreeNode_create(K, tmp,n,0,u,d);
+	K->root = KdTreeNode_create(K,tmp,n,0,u,d);
 	free(tmp);
 
 	if(K->root == NO_NODE) 
@@ -190,6 +212,7 @@ KdTreeQuery *KdTree_query(KdTree *K, Join *J)
 	Q->tree=K;
 	Q->region=J;
 	Q->count=1;
+	Q->maxdepth=(K->root==NO_NODE) ? 0 : K->nodes[K->root].depth;
 	Q->stack[0]=K->root;
 
 	return Q;
@@ -203,11 +226,14 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 {
 	int rq;
 
-	if((!Q) || (Q->tree->nodes[Q->tree->root].depth!=K->nodes[K->root].depth))
+	if((!Q)) return KdTree_query(K,J);
+
+	if((Q->maxdepth < K->nodes[K->root].depth))
 	{
 		rq = sizeof(KdTreeQuery)+K->nodes[K->root].depth*sizeof(index_t);
 		Q=(KdTreeQuery*)realloc(Q,rq);
 		if(!Q) return NULL;
+		Q->maxdepth=K->nodes[K->root].depth;
 	}
 
 	Q->tree=K;

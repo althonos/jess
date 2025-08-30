@@ -58,7 +58,7 @@ struct _JessQuery
 	Atom **atoms;
 	double threshold;
 	double max_total_threshold;
-	CandidateSetArray *candidates;
+	ScannerData* scanner_data;
 };
 
 // ==================================================================
@@ -124,9 +124,8 @@ JessQuery *Jess_query(Jess *J, Molecule *M,double t,double s)
 	Q->molecule=M;
 	Q->threshold=t;
 	Q->max_total_threshold=s;
-	
-	Q->candidates=CandidateSetArray_create();
-	if(!Q->candidates)
+	Q->scanner_data=ScannerData_create();
+	if(!Q->scanner_data)
 	{
 		JessQuery_free(Q);
 		return NULL;
@@ -143,9 +142,9 @@ void JessQuery_free(JessQuery *Q)
 {
 	if(Q)
 	{
-		CandidateSetArray_free(Q->candidates);
 		Scanner_free(Q->scanner);
 		Superposition_free(Q->super);
+		ScannerData_free(Q->scanner_data);
 		free(Q);
 	}
 }
@@ -203,7 +202,7 @@ int JessQuery_next(JessQuery *Q, int ignore_chain)
 			Q->scanner=Scanner_create(
 				Q->molecule,
 				Q->node->template,
-				Q->candidates,
+				Q->scanner_data,
 				Q->threshold,
 				Q->max_total_threshold
 				);
