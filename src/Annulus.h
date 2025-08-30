@@ -40,6 +40,7 @@ typedef struct _Annulus Annulus;
 // ==================================================================
 
 extern Annulus *Annulus_create(double*,double,double,int);
+extern Annulus *Annulus_reuse(Annulus*,double*,double,double,int);
 extern void Annulus_free(Annulus*);
 
 // ==================================================================

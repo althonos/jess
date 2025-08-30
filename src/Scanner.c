@@ -228,7 +228,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			max += dynamic_threshold;
 			if(min<0.5) min=0.5;
 
-			S->regions[k]->R[j]=Annulus_create(S->atom[j]->x,min,max,3);
+			S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[j]->x,min,max,3);
 		}
 
 		S->query[k]=KdTree_query(S->tree[k],S->regions[k]);

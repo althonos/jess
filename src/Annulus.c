@@ -38,13 +38,32 @@ Annulus *Annulus_create(double *u, double a, double b, int d)
 	double tmp;
 
 	if(d!=ANNULUS_DIM) return NULL;
+	A = (Annulus*)malloc(sizeof(Annulus));
 
-	rq = sizeof(Annulus);
-	// R = (Region*)calloc(1,rq);
-	A = (Annulus*)calloc(1,rq);
-	// R->intersectionQ=Annulus_ro;
-	// R->inclusionQ=Annulus_po;
-	// R->free=Annulus_free;
+	if(b<a)
+	{
+		tmp=b;
+		b=a;
+		a=tmp;
+	}
+
+	if(a<0.0) a=0.0;
+	if(b<0.0) b=0.0;
+
+	memcpy(A->centre,u,sizeof(double)*ANNULUS_DIM);
+	A->min=a*a;
+	A->max=b*b;
+	A->dim=d;
+
+	return A;
+}
+
+Annulus *Annulus_reuse(Annulus *A, double *u, double a, double b, int d)
+{
+	double tmp;
+
+	if(!A) return Annulus_create(u,a,b,d);
+	if(d!=ANNULUS_DIM) return NULL;
 
 	if(b<a)
 	{
