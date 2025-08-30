@@ -31,6 +31,7 @@ struct _ScannerData
 	bool *active;
 	KdTree **trees;
 	KdTreeQuery **queries;
+	double* weights;
 };
 
 // ==================================================================
@@ -60,6 +61,7 @@ struct _Scanner
 	int *index;
 	Atom **atom;
 	Join **regions;
+	double *weights;
 	int count;
 	double threshold;
 	double max_total_threshold;
@@ -93,6 +95,7 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 	S->atom=D->atom;
 	S->regions=D->regions;
 	S->active=D->active;
+	S->weights=D->weights;
 
 	S->template=T;
 	S->threshold=r;
@@ -103,7 +106,8 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 	{
 		S->index[k]=-1;
 		S->active[k]=false;
-		
+		S->weights[k]=S->template->distWeight(S->template, k);
+
 		T->candidates(T,M,k, &S->set[k]);
 		if(S->set[k]->count==0)
 		{
@@ -223,7 +227,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 		{
 			S->template->range(S->template,j,k,&min,&max);
 
-			dynamic_threshold = S->threshold + S->template->distWeight(S->template, j) + S->template->distWeight(S->template, k);
+			dynamic_threshold = S->threshold + S->weights[j] + S->weights[k];
 			// Limit threshold to a hard cutoff so execution does not suffer
 			if(dynamic_threshold > S->max_total_threshold){
 				dynamic_threshold = S->max_total_threshold;
@@ -266,6 +270,7 @@ ScannerData *ScannerData_create()
 	D->active=NULL;
 	D->queries=NULL;
 	D->trees=NULL;
+	D->weights=NULL;
 	return D;
 }
 
@@ -296,6 +301,7 @@ void ScannerData_free(ScannerData* D)
 		if(D->index) free(D->index);
 		if(D->atom) free(D->atom);
 		if(D->active) free(D->active);
+		if(D->weights) free(D->weights);
 		free(D);
 	}
 }
@@ -336,6 +342,9 @@ int ScannerData_resize(ScannerData* D, int n)
 
 		D->active=(bool*)realloc(D->active,n*sizeof(bool));
 		if(!D->active) return -1;
+
+		D->weights=(double*)realloc(D->weights,n*sizeof(double));
+		if(!D->weights) return -1;
 
 		D->capacity=n;
 	}

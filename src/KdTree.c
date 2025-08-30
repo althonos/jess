@@ -118,13 +118,6 @@ struct _KdTreeCompareData
 };
 
 // ==================================================================
-// Local functions
-// ==================================================================
-
-#define min(x,y) (x<y ? x:y)
-#define max(x,y) (x>y ? x:y)
-
-// ==================================================================
 // Public methods of type KdTree
 // ==================================================================
 
@@ -398,6 +391,8 @@ static size_t qselect_r(void* base, size_t n, size_t size, size_t k, compare_t c
 	}
 }
 
+#define min(x,y) (x<y ? x:y)
+#define max(x,y) (x>y ? x:y)
 
 static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u,int dim)
 {
