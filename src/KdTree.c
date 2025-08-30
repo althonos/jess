@@ -257,7 +257,6 @@ void KdTreeQuery_free(KdTreeQuery *Q)
 {
 	if(Q)
 	{
-		if(Q->region) Join_free(Q->region);
 		free(Q);
 	}
 }
