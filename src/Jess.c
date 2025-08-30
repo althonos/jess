@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <math.h>
 #include <string.h>
 
@@ -52,6 +53,7 @@ struct _JessQuery
 {
 	Node *node;
 	Scanner *scanner;
+	bool scan;
 	Superposition *super;
 	int reverseQ;
 	Molecule *molecule;
@@ -124,6 +126,8 @@ JessQuery *Jess_query(Jess *J, Molecule *M,double t,double s)
 	Q->molecule=M;
 	Q->threshold=t;
 	Q->max_total_threshold=s;
+	Q->scan=false;
+	Q->scanner=NULL;
 	Q->scanner_data=ScannerData_create();
 	if(!Q->scanner_data)
 	{
@@ -197,9 +201,10 @@ int JessQuery_next(JessQuery *Q, int ignore_chain)
 		Superposition_free(Q->super);
 		Q->super=NULL;
 
-		if(!Q->scanner)
+		if(!Q->scan)
 		{
-			Q->scanner=Scanner_create(
+			Q->scanner=Scanner_reuse(
+				Q->scanner,
 				Q->molecule,
 				Q->node->template,
 				Q->scanner_data,
@@ -208,9 +213,13 @@ int JessQuery_next(JessQuery *Q, int ignore_chain)
 				);
 
 			if(!Q->scanner)
-			{
+			{	
 				Q->node=Q->node->next;
 				continue;
+			}
+			else
+			{
+				Q->scan=true;
 			}
 		}
 
@@ -222,8 +231,9 @@ int JessQuery_next(JessQuery *Q, int ignore_chain)
 			return 1;
 		}
 
-		Scanner_free(Q->scanner);
-		Q->scanner=NULL;
+		// Scanner_free(Q->scanner);
+		// Q->scanner=NULL;
+		Q->scan=false;
 
 		Superposition_free(Q->super);
 		Q->super=NULL;

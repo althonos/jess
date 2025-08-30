@@ -30,6 +30,7 @@ typedef struct _Scanner Scanner;
 // ==================================================================
 
 extern Scanner *Scanner_create(Molecule*,Template*,ScannerData*,double,double);
+extern Scanner *Scanner_reuse(Scanner*,Molecule*,Template*,ScannerData*,double,double);
 extern void Scanner_free(Scanner*);
 extern Atom **Scanner_next(Scanner*, int);
 extern double Scanner_rmsd(Scanner*);

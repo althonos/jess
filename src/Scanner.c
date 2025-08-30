@@ -71,14 +71,21 @@ struct _Scanner
 
 Scanner *Scanner_create(Molecule *M, Template *T, ScannerData* D, double r, double s)
 {
-	Scanner *S;
+	Scanner* S;
+	S=(Scanner*)calloc(1,sizeof(Scanner));
+	if(!S) return NULL;
+	return Scanner_reuse(S,M,T,D,r,s);
+}
+
+Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, double r, double s)
+{
 	int k,n=T->count(T);
 	int m;
 
 	if(!D) return NULL;
+	if(!S) return Scanner_create(M,T,D,r,s);
 	if(ScannerData_resize(D,n)!=0) return NULL;
 
-	S=(Scanner*)calloc(1,sizeof(Scanner));
 	S->set=D->candidates;
 	S->tree=D->trees;
 	S->query=D->queries;
