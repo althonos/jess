@@ -57,9 +57,13 @@ Annulus *Annulus_reuse(Annulus *A, double *u, double a, double b, int d)
 	memcpy(A->centre,u,sizeof(double)*ANNULUS_DIM);
 	A->min=a*a;
 	A->max=b*b;
-	A->a=a;
-	A->b=b;
 	A->dim=d;
+
+	for(int i=0; i<ANNULUS_DIM;i++)
+	{
+		A->minBox[i] = A->centre[i] - b;
+		A->maxBox[i] = A->centre[i] + b;
+	}
 
 	return A;
 }

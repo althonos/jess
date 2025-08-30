@@ -25,10 +25,10 @@
 struct _Annulus
 {
 	double centre[ANNULUS_DIM];
+	double minBox[ANNULUS_DIM];
+	double maxBox[ANNULUS_DIM];
 	double min;
 	double max;
-	double a;
-	double b;
 	int dim;
 };
 
@@ -64,9 +64,9 @@ static inline int _Annulus_po(Annulus *A, double *x, int d)
 	double tmp,sum;
 	int i;
 
-	// Does x lie within annulus A?
-
 	if(A->dim!=d) return 0;
+
+	// Does x lie within annulus A?
 
 	for(sum=0.0,i=0; i<ANNULUS_DIM; i++)
 	{
@@ -79,40 +79,45 @@ static inline int _Annulus_po(Annulus *A, double *x, int d)
 
 static inline int _Annulus_ro(Annulus *A, double *minBox, double *maxBox, int d)
 {
-	// double minSum;
-	// double maxSum;
- 	// double t1,t2;
-	// double t3,t4;
 	int i;
 
-	// if(d!=A->dim) return 0;
+	if(d!=A->dim) return 0;
 
 	// Does the box region [minBox,maxBox] intersect the annulus A?
+	
+	// NB: This function is called in `KdTreeQuery` code to compute
+	//	   which branches of the k-D tree to discard while searching
+	//	   for a particular point; to speed-up querying, we only
+	//	   compute the intersection with the bounding box around the
+	//	   annulus rather than the annulus itself. This may cause some
+	//	   false positives, but since we still compute the inclusion
+	//	   in `Annulus_po` with the exact formula, the `KdTreeQuery`
+	//	   will never return a "wrong" answer.
+
+	for(i=0; i<ANNULUS_DIM; i++)
+		if(!((minBox[i] <= A->maxBox[i] ) && (A->minBox[i] <= maxBox[i])))
+			return 0;
+
+	return 1;
+
+	// NB: Exact version for reference.
 
 	// minSum=0.0;
 	// maxSum=0.0;
-	for(i=0; i<ANNULUS_DIM; i++)
-	{
-		double min = A->centre[i] - A->b;
-		double max = A->centre[i] + A->b;
-
-		if(!(( minBox[i] <= max ) && (min <= maxBox[i])))
-			return 0;
-		// t1 = A->centre[i]-minBox[i];
-		// t2 = A->centre[i]-maxBox[i];
-		// t1 *= t1;
-		// t2 *= t2;
-
-		// if(minBox[i]>A->centre[i] || maxBox[i]<A->centre[i])
-		// {
-		// 	minSum += min(t1,t2);
-		// }
-
-		// maxSum += max(t1,t2);
-	}
-
-	return 1;
+	// for(i=0; i<ANNULUS_DIM; i++)
+	// {
+	// 	t1 = A->centre[i]-minBox[i];
+	// 	t2 = A->centre[i]-maxBox[i];
+	// 	t1 *= t1;
+	// 	t2 *= t2;
+	// 	if(minBox[i]>A->centre[i] || maxBox[i]<A->centre[i])
+	// 	{
+	// 		minSum += min(t1,t2);
+	// 	}
+	// 	maxSum += max(t1,t2);
+	// }
 	// return minSum>A->max || maxSum<A->min ? 0:1;
+
 }
 
 // ==================================================================
