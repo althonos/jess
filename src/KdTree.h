@@ -42,6 +42,7 @@ extern KdTreeQuery *KdTree_query(KdTree*,Join*);
 
 extern void KdTreeQuery_free(KdTreeQuery*);
 extern int KdTreeQuery_next(KdTreeQuery*);
+extern KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery*,KdTree*,Join*);
 
 // ==================================================================
 

@@ -6,6 +6,7 @@
 // ==================================================================
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include "Scanner.h"
@@ -38,6 +39,7 @@ struct _Scanner
 	CandidateSet **set;
 	KdTree **tree;
 	KdTreeQuery **query;
+	bool *active;
 	int *index;
 	Atom **atom;
 	Join **regions;
@@ -63,6 +65,7 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 	S->index=(int*)calloc(n,sizeof(int));
 	S->atom=(Atom**)calloc(n,sizeof(Atom*));
 	S->regions=(Join**)calloc(n,sizeof(Join*));
+	S->active=(bool*)calloc(n,sizeof(bool));
 
 	S->template=T;
 	S->threshold=r;
@@ -94,6 +97,14 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 		}
 
 		S->tree[k]=KdTree_create(S->set[k]->coord,S->set[k]->count,3);
+		if(!S->tree[k])
+		{
+			Scanner_free(S);
+			return NULL;
+		}
+
+		S->query[k]=NULL;
+		S->active[k]=false;
 	}
 
 	if(S->count>0 && S->set[0]->count>0)
@@ -127,6 +138,7 @@ void Scanner_free(Scanner *S)
 		if(S->atom) free(S->atom);
 		if(S->index) free(S->index);
 		if(S->regions) free(S->regions);
+		if(S->active) free(S->active);
 
 		free(S);
 	}
@@ -173,7 +185,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 		// So k>0. If there is an active query for this
 		// set then query it now...
 
-		if(S->query[k])
+		if(S->active[k])
 		{
 			S->index[k]=KdTreeQuery_next(S->query[k]);
 			if(S->index[k]<0)
@@ -181,8 +193,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 				// The query ended. So we need to destroy
 				// this query, then drop down a level...
 
-				KdTreeQuery_free(S->query[k]);
-				S->query[k]=NULL;
+				S->active[k]=false;
 				S->atom[k]=NULL;
 				k--;
 			}
@@ -231,7 +242,9 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[j]->x,min,max,3);
 		}
 
-		S->query[k]=KdTree_query(S->tree[k],S->regions[k]);
+		S->active[k]=true;
+		S->query[k]=KdTreeQuery_reuse(S->query[k],S->tree[k],S->regions[k]);
+		if(!S->query[k]) return NULL;
 	}
 
 	// If k<0 there is no more!
