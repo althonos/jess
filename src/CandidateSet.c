@@ -21,7 +21,7 @@ CandidateSet *CandidateSet_create()
 {
 	CandidateSet *S;
 
-	S = (CandidateSet*)calloc(1,sizeof(CandidateSet));
+	S = (CandidateSet*)malloc(sizeof(CandidateSet));
     if(!S) return NULL;
 
 	S->coord = NULL;

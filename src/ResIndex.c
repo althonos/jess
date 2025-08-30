@@ -40,10 +40,8 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
 
     // Allocate struct
 
-    I = calloc(1, sizeof(ResIndex));
-    if(!I) {
-        return NULL;
-    }
+    I = (ResIndex*) malloc(sizeof(ResIndex));
+    if(!I) return NULL;
 
     // Initialize fields
     I->n = 0;
@@ -51,14 +49,8 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
     I->offset = NULL;
     I->atoms = NULL;
 
-    // Handle empty case
-    if(n==0) {
-        I->offset = calloc(2, sizeof(size_t));
-        I->atoms = (Atom**) calloc(1, sizeof(Atom*));
-        I->offset[0] = I->offset[1] = 0;
-        I->atoms[0] = NULL;
-        return I;
-    }
+    // No extra allocation on empty case
+    if(n==0) return I;
 
     // Allocate auxilliary data to sort names
 
@@ -159,8 +151,8 @@ extern Atom** ResIndex_get(ResIndex* I, const char resName[4])
 
 extern Atom** ResIndex_values(ResIndex* I, int i)
 {
-    if(i > I->n)
-        return &I->atoms[I->offset[1] - 1];
+    static Atom* noatom = NULL;
+    if(i > I->n || i < 0) return &noatom;
     return &I->atoms[I->offset[i]];
 }
 
