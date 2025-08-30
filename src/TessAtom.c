@@ -468,7 +468,7 @@ TessAtom *TessAtom_copy(const TessAtom *A)
 	rq += sizeof(char)*(5*ac+4*rc);
 
 	// allocate new atom
-	B = (TessAtom*)calloc(1,rq);
+	B = (TessAtom*)malloc(rq);
 
 	// copy all fields including string data from original Atom
 	memcpy(B, A, rq);

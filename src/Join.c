@@ -47,7 +47,7 @@ Join *Join_allocate(int count,JoinType type)
 	int rq;
 
 	rq = sizeof(Join)+sizeof(Annulus*)*count;
-	J = (Join*)calloc(1,rq);
+	J = (Join*)malloc(rq);
 	if(!J) return NULL;
 
 	J->count=count;

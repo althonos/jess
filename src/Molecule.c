@@ -68,7 +68,7 @@ Molecule *Molecule_create(FILE *file, int ignore_endmdl, float conservation_cuto
 			// We got one! Create a new node in
 			// the list...
 
-			pA = (Atom*)calloc(1,sizeof(Atom));
+			pA = (Atom*)malloc(sizeof(Atom));
 			memcpy(pA,&A,sizeof(Atom));
 
 			// If there is a user-defined conservation score cutoff in 
@@ -80,7 +80,7 @@ Molecule *Molecule_create(FILE *file, int ignore_endmdl, float conservation_cuto
 				continue;
 			}
 
-			N = (Node*)calloc(1,sizeof(Node));
+			N = (Node*)malloc(sizeof(Node));
 			N->next=head;
 			N->atom=pA;
 			head=N;
@@ -97,7 +97,7 @@ Molecule *Molecule_create(FILE *file, int ignore_endmdl, float conservation_cuto
 
 	// Create the molecule...
 
-	M = (Molecule*)calloc(1,sizeof(Molecule)+count*sizeof(Atom*));
+	M = (Molecule*)malloc(sizeof(Molecule)+count*sizeof(Atom*));
 	M->index = NULL;
 	M->count=count;
 	strcpy(M->id,pdb);

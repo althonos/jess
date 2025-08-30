@@ -274,7 +274,7 @@ Template *TessTemplate_create(FILE *file,const char *sym)
 			// No errors thus far - add the atom template
 			// to the list we're creating...
 
-			n = (Node*)calloc(1,sizeof(Node));
+			n = (Node*)malloc(sizeof(Node));
 			n->succ=head;
 			head=n;
 			n->atom=A;

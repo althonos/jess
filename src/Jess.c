@@ -106,7 +106,7 @@ void Jess_addTemplate(Jess *J, Template *T)
 {
 	Node *n;
 
-	n=(Node*)calloc(1,sizeof(Node));
+	n=(Node*)malloc(sizeof(Node));
 	n->template=T;
 	n->next=J->head;
 	J->head=n;
