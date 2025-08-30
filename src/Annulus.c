@@ -33,29 +33,8 @@ int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d)
 Annulus *Annulus_create(double *u, double a, double b, int d)
 {
 	Annulus *A;
-	Region *R;
-	int rq;
-	double tmp;
-
-	if(d!=ANNULUS_DIM) return NULL;
 	A = (Annulus*)malloc(sizeof(Annulus));
-
-	if(b<a)
-	{
-		tmp=b;
-		b=a;
-		a=tmp;
-	}
-
-	if(a<0.0) a=0.0;
-	if(b<0.0) b=0.0;
-
-	memcpy(A->centre,u,sizeof(double)*ANNULUS_DIM);
-	A->min=a*a;
-	A->max=b*b;
-	A->dim=d;
-
-	return A;
+	return Annulus_reuse(A,u,a,b,d);
 }
 
 Annulus *Annulus_reuse(Annulus *A, double *u, double a, double b, int d)
@@ -78,6 +57,8 @@ Annulus *Annulus_reuse(Annulus *A, double *u, double a, double b, int d)
 	memcpy(A->centre,u,sizeof(double)*ANNULUS_DIM);
 	A->min=a*a;
 	A->max=b*b;
+	A->a=a;
+	A->b=b;
 	A->dim=d;
 
 	return A;

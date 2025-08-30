@@ -27,6 +27,8 @@ struct _Annulus
 	double centre[ANNULUS_DIM];
 	double min;
 	double max;
+	double a;
+	double b;
 	int dim;
 };
 
@@ -77,34 +79,40 @@ static inline int _Annulus_po(Annulus *A, double *x, int d)
 
 static inline int _Annulus_ro(Annulus *A, double *minBox, double *maxBox, int d)
 {
-	double minSum;
-	double maxSum;
- 	double t1,t2;
-	double t3,t4;
+	// double minSum;
+	// double maxSum;
+ 	// double t1,t2;
+	// double t3,t4;
 	int i;
 
-	if(d!=A->dim) return 0;
+	// if(d!=A->dim) return 0;
 
 	// Does the box region [minBox,maxBox] intersect the annulus A?
 
-	minSum=0.0;
-	maxSum=0.0;
+	// minSum=0.0;
+	// maxSum=0.0;
 	for(i=0; i<ANNULUS_DIM; i++)
 	{
-		t1 = A->centre[i]-minBox[i];
-		t2 = A->centre[i]-maxBox[i];
-		t1 *= t1;
-		t2 *= t2;
+		double min = A->centre[i] - A->b;
+		double max = A->centre[i] + A->b;
 
-		if(minBox[i]>A->centre[i] || maxBox[i]<A->centre[i])
-		{
-			minSum += min(t1,t2);
-		}
+		if(!(( minBox[i] <= max ) && (min <= maxBox[i])))
+			return 0;
+		// t1 = A->centre[i]-minBox[i];
+		// t2 = A->centre[i]-maxBox[i];
+		// t1 *= t1;
+		// t2 *= t2;
 
-		maxSum += max(t1,t2);
+		// if(minBox[i]>A->centre[i] || maxBox[i]<A->centre[i])
+		// {
+		// 	minSum += min(t1,t2);
+		// }
+
+		// maxSum += max(t1,t2);
 	}
 
-	return minSum>A->max || maxSum<A->min ? 0:1;
+	return 1;
+	// return minSum>A->max || maxSum<A->min ? 0:1;
 }
 
 // ==================================================================
