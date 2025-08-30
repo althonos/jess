@@ -165,7 +165,6 @@ KdTree *KdTree_reuse(KdTree *K, double **u, int n, int d)
 	K->dim=d;
 	K->count=0;
 	K->root=NO_NODE;
-	memset(K->nodes,0,sizeof(KdTreeNode)*K->capacity);
 
 	// 3a. Create a temporary array to hold indices
 
