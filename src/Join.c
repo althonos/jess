@@ -41,7 +41,7 @@ int Join_ipo(Region *R,double *x,int dim)
 // Construction and destruction
 // ==================================================================
 
-Join *Join_create(Annulus **S,int count,JoinType type)
+Join *Join_allocate(int count,JoinType type)
 {
 	Join *J;
 	int rq;
@@ -52,6 +52,15 @@ Join *Join_create(Annulus **S,int count,JoinType type)
 
 	J->count=count;
 	J->type=type;
+	for(int i=0;i<count;i++) J->R[i]=NULL;
+
+	return J;
+}
+
+Join *Join_create(Annulus **S,int count,JoinType type)
+{
+	Join *J = Join_allocate(count,type);
+	if(!J) return NULL;
 	memcpy(J->R,S,sizeof(Annulus*)*count);
 
 	return J;

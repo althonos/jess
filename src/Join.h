@@ -45,6 +45,7 @@ struct _Join
 // free(J)					Frees join AND nested regions (J->free)
 // ==================================================================
 
+extern Join *Join_allocate(int,JoinType);
 extern Join *Join_create(Annulus**,int,JoinType);
 extern void Join_free(Join*);
 

@@ -40,7 +40,7 @@ struct _Scanner
 	KdTreeQuery **query;
 	int *index;
 	Atom **atom;
-	Annulus **region;
+	Join **regions;
 	int count;
 	double threshold;
 	double max_total_threshold;
@@ -62,7 +62,7 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 	S->query=(KdTreeQuery**)calloc(n,sizeof(KdTreeQuery*));
 	S->index=(int*)calloc(n,sizeof(int));
 	S->atom=(Atom**)calloc(n,sizeof(Atom*));
-	S->region=(Annulus**)calloc(n,sizeof(Annulus*));
+	S->regions=(Join**)calloc(n,sizeof(Join*));
 
 	S->template=T;
 	S->threshold=r;
@@ -71,6 +71,13 @@ Scanner *Scanner_create(Molecule *M, Template *T, CandidateSetArray* C, double r
 
 	for(k=0; k<n; k++)
 	{
+		S->regions[k]=Join_allocate(k,innerJoin);
+		if(!S->regions[k])
+		{
+			Scanner_free(S);
+			return NULL;
+		}
+
 		S->index[k]=-1;
 		S->set[k]=CandidateSetArray_get(C,k);
 		if(!S->set[k])
@@ -111,6 +118,7 @@ void Scanner_free(Scanner *S)
 			// if(S->set && S->set[k]) CandidateSet_free(S->set[k]); // managed at the JessQuery level
 			if(S->tree && S->tree[k]) KdTree_free(S->tree[k]);
 			if(S->query && S->query[k]) KdTreeQuery_free(S->query[k]);
+			if(S->regions && S->regions[k]) Join_free(S->regions[k]);
 		}
 
 		if(S->set) free(S->set);
@@ -118,7 +126,7 @@ void Scanner_free(Scanner *S)
 		if(S->tree) free(S->tree);
 		if(S->atom) free(S->atom);
 		if(S->index) free(S->index);
-		if(S->region) free(S->region);
+		if(S->regions) free(S->regions);
 
 		free(S);
 	}
@@ -128,8 +136,6 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 {
 	int j,k;
 	double min,max;
-	Join *J;
-
 	double dynamic_threshold = S->threshold;
 
 	k=S->count-1;
@@ -209,7 +215,6 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 		// So, there is an active query result at k-1 and
 		// no active query at k; create a new query at
 		// index k and try again (with the same k)
-
 		for(j=0; j<k; j++)
 		{
 			S->template->range(S->template,j,k,&min,&max);
@@ -223,11 +228,10 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			max += dynamic_threshold;
 			if(min<0.5) min=0.5;
 
-			S->region[j]=Annulus_create(S->atom[j]->x,min,max,3);
+			S->regions[k]->R[j]=Annulus_create(S->atom[j]->x,min,max,3);
 		}
 
-		J = Join_create(S->region,k,innerJoin);
-		S->query[k]=KdTree_query(S->tree[k],J);
+		S->query[k]=KdTree_query(S->tree[k],S->regions[k]);
 	}
 
 	// If k<0 there is no more!
