@@ -1,8 +1,20 @@
 cmake_minimum_required(VERSION 3.10)
 project(Jess)
 
+# --- `alloca` is used in `TessTemplate_candidates` to avoid small char* allocations ---
 include(CheckSymbolExists)
 check_symbol_exists(alloca "alloca.h" HAVE_ALLOCA)
+
+# --- `__thread` local storage is used in `Scanner_reuse` ---
+include(CheckSourceRuns)
+check_source_runs(C
+    "
+    #include <stdlib.h>
+    static __thread int i;
+    int main(int argc, const char** argv) { i = 0; return i; }
+    "
+    HAVE_THREADLOCALSTORAGE
+)
 
 add_library(jess)
 target_sources(jess PRIVATE
@@ -21,6 +33,9 @@ target_sources(jess PRIVATE
 	src/ResIndex.c)
 if(HAVE_ALLOCA)
 	target_compile_definitions(jess PUBLIC -DHAVE_ALLOCA)
+endif()
+if(HAVE_THREADLOCALSTORAGE)
+	target_compile_definitions(jess PUBLIC -DHAVE_THREADLOCALSTORAGE)
 endif()
 
 add_executable(jess_bin)

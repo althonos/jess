@@ -74,10 +74,23 @@ struct _Scanner
 // Methods of type Scanner
 // ==================================================================
 
+#ifdef HAVE_THREADLOCALSTORAGE
 static __thread CandidateSet **candidates;
-
-static int _cmp(const void* a, const void* b)
+static int _CandidateSet_size_compare(const void* a, const void* b)
 {
+	int x = *((int*)a);
+	int y = *((int*)b);
+	return candidates[x]->count - candidates[y]->count;
+}
+#endif
+
+#ifdef HAVE_GNU_QSORT_R
+static int _CandidateSet_size_compare_r(const void* a, const void* b, void* data)
+#else
+static int _CandidateSet_size_compare_r(void* data, const void* a, const void* b)
+#endif
+{
+	CandidateSet** candidates = (CandidateSet**) data;
 	int x = *((int*)a);
 	int y = *((int*)b);
 	return candidates[x]->count - candidates[y]->count;
@@ -85,10 +98,7 @@ static int _cmp(const void* a, const void* b)
 
 Scanner *Scanner_create(Molecule *M, Template *T, ScannerData* D, double r, double s)
 {
-	Scanner* S;
-	S=(Scanner*)calloc(1,sizeof(Scanner));
-	if(!S) return NULL;
-	return Scanner_reuse(S,M,T,D,r,s);
+	return Scanner_reuse(NULL,M,T,D,r,s);
 }
 
 Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, double r, double s)
@@ -97,8 +107,14 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 	int m;
 
 	if(!D) return NULL;
-	if(!S) return Scanner_create(M,T,D,r,s);
-	if(ScannerData_resize(D,n)!=0) return NULL;
+	if(!S)
+	{
+		S=(Scanner*) malloc(sizeof(Scanner));
+		if(!S) return NULL;
+	}
+
+	if(ScannerData_resize(D,n)!=0) 
+		return NULL;
 
 	S->set=D->candidates;
 	S->tree=D->trees;
@@ -118,7 +134,7 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 	for(k=0; k<n; k++)
 	{
 		S->atom[k]=NULL;
-		S->order[k]=n-k-1;
+		S->order[k]=k;
 		S->index[k]=-1;
 		S->active[k]=false;
 		S->weights[k]=S->template->distWeight(S->template, k);
@@ -139,14 +155,18 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 
 	}
 
-	candidates=S->set;
-	qsort(S->order,n,sizeof(int),_cmp);
-	// printf("(order) [ ");
-	// for(k=0; k<n; k++)
-	// {
-	// 	printf("%i ",S->order[k]);
-	// }
-	// printf("]\n");
+#if defined(HAVE_GNU_QSORT_R)
+	qsort_r(S->order,n,sizeof(int),_CandidateSet_size_compare_r,S->set);
+#elif defined(HAVE_APPLE_QSORT_R)
+	qsort_r(S->order,n,sizeof(int),S->set,_CandidateSet_size_compare_r);
+#elif defined(HAVE_WIN32_QSORT_S)
+	qsort_s(S->order,n,sizeof(int),_CandidateSet_size_compare_r,S->set);
+#elif defined(HAVE_THREADLOCALSTORAGE)
+	candidates = S->set;
+	qsort(S->order,n,sizeof(int),_CandidateSet_size_compare);
+#else
+#warning "No re-entrant `qsort` implementation or thread-local storage, optimal iteration order will not be computed."
+#endif	
 
 	if(S->count>0 && S->set[S->order[0]]->count>0)
 	{
