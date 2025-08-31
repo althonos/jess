@@ -281,7 +281,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			if(min<0.5) min=0.5;
 
 			assert(S->atom[S->order[j]]);
-			S->regions[k]->R[j]=Annulus_create(S->atom[S->order[j]]->x,min,max,3);
+			S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[S->order[j]]->x,min,max,3);
 		}
 
 		S->active[S->order[k]]=true;
