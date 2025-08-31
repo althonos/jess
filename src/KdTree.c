@@ -391,8 +391,13 @@ static size_t qselect_r(void* base, size_t n, size_t size, size_t k, compare_t c
 	}
 }
 
-#define min(x,y) (x<y ? x:y)
-#define max(x,y) (x>y ? x:y)
+#ifndef Jess_min
+#define Jess_min(x,y) (x<y ? x:y)
+#endif
+
+#ifndef Jess_max
+#define Jess_max(x,y) (x>y ? x:y)
+#endif
 
 static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u,int dim)
 {
@@ -464,12 +469,12 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u
 	N->right=right;
 
 	// Compute max,min and depth...
-	N->depth = max(K->nodes[left].depth,K->nodes[right].depth)+1;
+	N->depth=Jess_max(K->nodes[left].depth,K->nodes[right].depth)+1;
 
 	for(i=0; i<dim; i++)
 	{
-		N->min[i]=min(K->nodes[left].min[i],K->nodes[right].min[i]);
-		N->max[i]=max(K->nodes[left].max[i],K->nodes[right].max[i]);
+		N->min[i]=Jess_min(K->nodes[left].min[i],K->nodes[right].min[i]);
+		N->max[i]=Jess_max(K->nodes[left].max[i],K->nodes[right].max[i]);
 	}
 
 	// We're done...

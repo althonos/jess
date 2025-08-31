@@ -46,13 +46,6 @@ extern Annulus *Annulus_reuse(Annulus*,double*,double,double,int);
 extern void Annulus_free(Annulus*);
 
 // ==================================================================
-// Local "functions"
-// ==================================================================
-
-#define min(x,y) (x<y ? x:y)
-#define max(x,y) (x>y ? x:y)
-
-// ==================================================================
 // Oracles
 // ==================================================================
 
@@ -84,7 +77,7 @@ static inline int _Annulus_ro(Annulus *A, double *minBox, double *maxBox, int d)
 	if(d!=A->dim) return 0;
 
 	// Does the box region [minBox,maxBox] intersect the annulus A?
-	
+
 	// NB: This function is called in `KdTreeQuery` code to compute
 	//	   which branches of the k-D tree to discard while searching
 	//	   for a particular point; to speed-up querying, we only
