@@ -96,12 +96,12 @@ static int _CandidateSet_size_compare_r(void* data, const void* a, const void* b
 	return candidates[x]->count - candidates[y]->count;
 }
 
-Scanner *Scanner_create(Molecule *M, Template *T, ScannerData* D, double r, double s)
+Scanner *Scanner_create(Molecule *M, Template *T, ScannerData* D, double r, double s, bool reorder)
 {
-	return Scanner_reuse(NULL,M,T,D,r,s);
+	return Scanner_reuse(NULL,M,T,D,r,s,reorder);
 }
 
-Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, double r, double s)
+Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, double r, double s, bool reorder)
 {
 	int k,n=T->count(T);
 	int m;
@@ -156,16 +156,19 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 	}
 
 #if defined(HAVE_GNU_QSORT_R)
-	qsort_r(S->order,n,sizeof(int),_CandidateSet_size_compare_r,S->set);
+	if(reorder) qsort_r(S->order,n,sizeof(int),_CandidateSet_size_compare_r,S->set);
 #elif defined(HAVE_APPLE_QSORT_R)
-	qsort_r(S->order,n,sizeof(int),S->set,_CandidateSet_size_compare_r);
+	if(reorder) qsort_r(S->order,n,sizeof(int),S->set,_CandidateSet_size_compare_r);
 #elif defined(HAVE_WIN32_QSORT_S)
-	qsort_s(S->order,n,sizeof(int),_CandidateSet_size_compare_r,S->set);
+	if(reorder) qsort_s(S->order,n,sizeof(int),_CandidateSet_size_compare_r,S->set);
 #elif defined(HAVE_THREADLOCALSTORAGE)
-	candidates = S->set;
-	qsort(S->order,n,sizeof(int),_CandidateSet_size_compare);
+	if(reorder)
+	{
+		candidates = S->set;
+		qsort(S->order,n,sizeof(int),_CandidateSet_size_compare);
+	}
 #else
-#warning "No re-entrant `qsort` implementation or thread-local storage, optimal iteration order will not be computed."
+#warning "No re-entrant `qsort` implementation or thread-local storage, no iteration reordering will be done."
 #endif	
 
 	if(S->count>0 && S->set[S->order[0]]->count>0)

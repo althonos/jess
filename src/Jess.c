@@ -47,6 +47,7 @@ struct _Jess
 // atoms				Array of Atoms which are hit
 // threshold			The distance threshold
 // candidates			CandidateSetArray to recycle between scanners
+// reorder				Whether to use atom reordering while scanning
 // ==================================================================
 
 struct _JessQuery
@@ -61,6 +62,7 @@ struct _JessQuery
 	double threshold;
 	double max_total_threshold;
 	ScannerData* scanner_data;
+	bool reorder;
 };
 
 // ==================================================================
@@ -114,7 +116,7 @@ void Jess_addTemplate(Jess *J, Template *T)
 	J->head=n;
 }
 
-JessQuery *Jess_query(Jess *J, Molecule *M,double t,double s)
+JessQuery *Jess_query(Jess *J, Molecule *M,double t,double s,bool reorder)
 {
 	JessQuery *Q;
 
@@ -127,6 +129,7 @@ JessQuery *Jess_query(Jess *J, Molecule *M,double t,double s)
 	Q->threshold=t;
 	Q->max_total_threshold=s;
 	Q->scan=false;
+	Q->reorder=reorder;
 	Q->scanner=NULL;
 	Q->scanner_data=ScannerData_create();
 	if(!Q->scanner_data)
@@ -209,7 +212,8 @@ int JessQuery_next(JessQuery *Q, int ignore_chain)
 				Q->node->template,
 				Q->scanner_data,
 				Q->threshold,
-				Q->max_total_threshold
+				Q->max_total_threshold,
+				Q->reorder
 				);
 
 			if(!Q->scanner)

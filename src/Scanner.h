@@ -11,6 +11,8 @@
 #include "Template.h"
 #include "Molecule.h"
 
+#include <stdbool.h>
+
 // ==================================================================
 // Forward declarations
 // ==================================================================
@@ -29,8 +31,8 @@ typedef struct _Scanner Scanner;
 // next(S)					Next result (an array of Atoms)
 // ==================================================================
 
-extern Scanner *Scanner_create(Molecule*,Template*,ScannerData*,double,double);
-extern Scanner *Scanner_reuse(Scanner*,Molecule*,Template*,ScannerData*,double,double);
+extern Scanner *Scanner_create(Molecule*,Template*,ScannerData*,double,double,bool);
+extern Scanner *Scanner_reuse(Scanner*,Molecule*,Template*,ScannerData*,double,double,bool);
 extern void Scanner_free(Scanner*);
 extern Atom **Scanner_next(Scanner*, int);
 extern double Scanner_rmsd(Scanner*);
