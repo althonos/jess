@@ -8,6 +8,7 @@
 #include "KdTree.h"
 #include "qselect.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -15,6 +16,7 @@
 
 #define NO_NODE	SIZE_MAX
 #define MAX_DIM 3
+#define DIM 3
 
 // ==================================================================
 // Forward declarations of local types
@@ -130,10 +132,7 @@ KdTree *KdTree_create(double **u, int n, int d)
 	int i,j;
 	int *tmp;
 
-	if(n<1 || d<1 || !u) return NULL;
-	if(d>MAX_DIM) return NULL;
-
-	// 1. Create memory for the object.
+	assert(!(n<1 || d<1 || !u || d>MAX_DIM || d!=DIM));
 
 	K = (KdTree*)malloc(sizeof(KdTree));
 	if(!K) return NULL;
@@ -153,7 +152,7 @@ KdTree *KdTree_reuse(KdTree *K, double **u, int n, int d)
 
 	if(!K) return KdTree_create(u,n,d);
 
-	if((n<1 || d<1 || !u) || (d>MAX_DIM)) {
+	if((n<1 || d<1 || !u) || (d!=DIM)) {
 		KdTree_free(K);
 		return NULL;
 	}
@@ -209,6 +208,11 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 {
 	int rq;
 
+	assert(K);
+	assert(K->dim == DIM);
+	assert(J);
+	assert(J->type == innerJoin);
+
 	if(!(Q) || (Q->maxdepth < K->nodes[K->root].depth))
 	{
 		rq = sizeof(KdTreeQuery)+K->nodes[K->root].depth*sizeof(index_t);
@@ -226,7 +230,7 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 	//	   the bounding box to compute intersections in `KdTreeQuery_next`
 	//	   instead of computing the individual `Annulus` intersections.
 
-	Q->box.dim = K->dim;
+	Q->box.dim = DIM;
 	Join_computeBox(Q->region,&Q->box);
 
 	return Q;
@@ -238,7 +242,6 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 	Join *J = Q->region;
 	Box *B = &Q->box;
 	index_t *stack=&(Q->stack[0]);
-	int dim = Q->tree->dim;
 	int *count = &(Q->count);
 
 	// Until the stack is empty (or we return inside
@@ -257,7 +260,7 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 
 		if(N->type<0)
 		{
-			if(_Join_po(J,N->min,dim))
+			if(_Join_po(J,N->min,DIM))
 			{
 				return N->index;
 			}
@@ -272,14 +275,14 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 		// the node's region then we can remove it
 		// and continue with the rest of the stack.
 
-		if(J->type==innerJoin)
-		{
-			if(!_Box_ro(B,N->min,N->max,dim)) continue;
-		}
-		else
-		{
-			if(!_Join_ro(J,N->min,N->max,dim)) continue;
-		}
+		// if(J->type==innerJoin)
+		// {
+		if(!_Box_ro(B,N->min,N->max,DIM)) continue;
+		// }
+		// else
+		// {
+		// 	if(!_Join_ro(J,N->min,N->max,dim)) continue;
+		// }
 
 		// The query region *does* intersect the node's
 		// region. So now we must place the child nodes
