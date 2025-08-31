@@ -6,6 +6,8 @@
 // ==================================================================
 
 #include "KdTree.h"
+#include "qselect.h"
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -327,69 +329,6 @@ static int KdTree_compare_r(const void* pa, const void* pb, void* data)
 // ==================================================================
 // Methods of local type KdTreeNode
 // ==================================================================
-
-typedef int(*compare_t)(const void*, const void*, void*);
-
-
-static inline void
-_qselect_memswap(void *restrict p1, void *restrict p2, size_t n)
-{
-  while (n > 0)
-    {
-      unsigned char t = ((unsigned char *)p1)[--n];
-      ((unsigned char *)p1)[n] = ((unsigned char *)p2)[n];
-      ((unsigned char *)p2)[n] = t;
-    }
-}
-
-static size_t _qselect_partition(void* base, size_t size, size_t left, size_t right, size_t pivot_index, compare_t compare, void* arg)
-{
-	size_t store_index = left;
-	_qselect_memswap(base+right*size, base+pivot_index*size, size);
-	for(size_t i=left; i<right; i++)
-	{
-		if (compare(base+i*size, base+right*size, arg) <= 0)
-		{
-			_qselect_memswap(base+i*size, base+store_index*size, size);
-			store_index += 1; 
-		}
-	}
-	_qselect_memswap(base+store_index*size, base+right*size, size);
-	return store_index;
-}
-
-static size_t _qselect_median3(void* base, size_t size, size_t left, size_t right, compare_t compare, void* arg)
-{
-	size_t mid = (left + right + 1) / 2;
-	if ((compare(base+left*size, base+mid*size, arg) > 0) != (compare(base+left*size, base+right*size, arg) > 0))
-		return left;
-	else if ((compare(base+mid*size, base+left*size, arg) < 0) != (compare(base+mid*size, base+right*size, arg) < 0))
-		return mid;
-	else
-		return right;
-}
-
-static size_t qselect_r(void* base, size_t n, size_t size, size_t k, compare_t compare, void* arg) 
-{
-	size_t pivot_index;
-	size_t left = 0;
-	size_t right = n-1;
-
-	while(1) {
-		if (left == right)
-			return left;
-
-		pivot_index = _qselect_median3(base, size, left, right, compare, arg); 
-		pivot_index = _qselect_partition(base, size, left, right, pivot_index, compare, arg);
-
-		if(pivot_index == k) 
-			return pivot_index;
-		else if (k < pivot_index)
-			right = pivot_index - 1;
-		else
-			left = pivot_index + 1;
-	}
-}
 
 #ifndef Jess_min
 #define Jess_min(x,y) (x<y ? x:y)
