@@ -39,7 +39,7 @@ struct _Template
 	int (*count)(const Template*);
 	int (*match)(const Template*,int,const Atom*);
 	int (*range)(const Template*,int,int,double*,double*);
-	int (*check)(const Template*,Atom**,int,int);
+	int (*check)(const Template*,Atom**,int*,int,int);
 	void (*candidates)(const Template*, const Molecule*, int, CandidateSet**);
 	const double *(*position)(const Template*,int);
 	const char *(*name)(const Template*);

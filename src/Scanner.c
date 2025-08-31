@@ -5,6 +5,7 @@
 // Implementation of type Scanner (the main Jess query object).
 // ==================================================================
 
+#include <assert.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
@@ -62,6 +63,7 @@ struct _Scanner
 	Atom **atom;
 	Join **regions;
 	double *weights;
+	int* order;
 	int count;
 	double threshold;
 	double max_total_threshold;
@@ -70,6 +72,15 @@ struct _Scanner
 // ==================================================================
 // Methods of type Scanner
 // ==================================================================
+
+static __thread CandidateSet **candidates;
+
+static int _cmp(const void* a, const void* b)
+{
+	int x = *((int*)a);
+	int y = *((int*)b);
+	return candidates[x]->count - candidates[y]->count;
+}
 
 Scanner *Scanner_create(Molecule *M, Template *T, ScannerData* D, double r, double s)
 {
@@ -96,6 +107,7 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 	S->regions=D->regions;
 	S->active=D->active;
 	S->weights=D->weights;
+	S->order=(int*)calloc(n,sizeof(int));
 
 	S->template=T;
 	S->threshold=r;
@@ -104,6 +116,8 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 
 	for(k=0; k<n; k++)
 	{
+		S->atom[k]=NULL;
+		S->order[k]=n-k-1;
 		S->index[k]=-1;
 		S->active[k]=false;
 		S->weights[k]=S->template->distWeight(S->template, k);
@@ -124,10 +138,19 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 
 	}
 
-	if(S->count>0 && S->set[0]->count>0)
+	candidates=S->set;
+	qsort(S->order,n,sizeof(int),_cmp);
+	// printf("(order) [ ");
+	// for(k=0; k<n; k++)
+	// {
+	// 	printf("%i ",S->order[k]);
+	// }
+	// printf("]\n");
+
+	if(S->count>0 && S->set[S->order[0]]->count>0)
 	{
-		S->index[0]=0;
-		S->atom[0]=S->set[0]->atom[0];
+		S->index[S->order[0]]=0;
+		S->atom[S->order[0]]=S->set[S->order[0]]->atom[0];
 	}
 
 	return S;
@@ -137,6 +160,7 @@ void Scanner_free(Scanner *S)
 {
 	if(S)
 	{
+		if(S->order) free(S->order);
 		free(S);
 	}
 }
@@ -153,6 +177,11 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 
 	while(k>=0)
 	{
+		// printf("k=%i S->order[k]=%i atoms[ ",k,S->order[k]);
+		// for(j=0;j<S->count;j++) {
+		// 	printf("%i ", (S->atom[S->order[j]]) ? S->atom[S->order[j]]->serial : -1);
+		// }
+		// printf("]\n");
 		// If k==S->count, we have a hit!
 
 		if(k==S->count) break;
@@ -162,9 +191,9 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 
 		if(k==0)
 		{
-			S->index[0]++;
+			S->index[S->order[0]]++;
 
-			if(S->index[0]>=S->set[0]->count)
+			if(S->index[S->order[0]]>=S->set[S->order[0]]->count)
 			{
 				// End of query...
 
@@ -172,7 +201,8 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			}
 			else
 			{
-				S->atom[0]=S->set[0]->atom[S->index[0]];
+				// printf("Adding atom %i at index %i\n", S->set[S->order[0]]->atom[S->index[S->order[0]]]->serial, S->order[0]);
+				S->atom[S->order[0]]=S->set[S->order[0]]->atom[S->index[S->order[0]]];
 				k++;
 			}
 
@@ -182,16 +212,17 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 		// So k>0. If there is an active query for this
 		// set then query it now...
 
-		if(S->active[k])
+		if(S->active[S->order[k]])
 		{
-			S->index[k]=KdTreeQuery_next(S->query[k]);
-			if(S->index[k]<0)
+			S->index[S->order[k]]=KdTreeQuery_next(S->query[S->order[k]]);
+			if(S->index[S->order[k]]<0)
 			{
 				// The query ended. So we need to destroy
 				// this query, then drop down a level...
 
-				S->active[k]=false;
-				S->atom[k]=NULL;
+				// printf("Dropping atom: %i\n", S->order[k]);
+				S->active[S->order[k]]=false;
+				S->atom[S->order[k]]=NULL;
 				k--;
 			}
 			else
@@ -200,8 +231,9 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 				// atom, check n-ary constraints and continue
 				// up...
 
-				S->atom[k]=S->set[k]->atom[S->index[k]];
-				if(S->template->check(S->template,S->atom,k+1,ignore_chain))
+				// printf("Adding atom: %i\n", S->order[k]);
+				S->atom[S->order[k]]=S->set[S->order[k]]->atom[S->index[S->order[k]]];
+				if(S->template->check(S->template,S->atom,S->order,k+1,ignore_chain))
 				{
 					k++;
 				}
@@ -214,7 +246,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 		// no active query result for set k-1 then we need
 		// to drop down again...
 
-		if(S->index[k-1]<0)
+		if(S->index[S->order[k-1]]<0)
 		{
 			k--;
 			continue;
@@ -223,11 +255,12 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 		// So, there is an active query result at k-1 and
 		// no active query at k; create a new query at
 		// index k and try again (with the same k)
+
 		for(j=0; j<k; j++)
 		{
-			S->template->range(S->template,j,k,&min,&max);
+			S->template->range(S->template,S->order[j],S->order[k],&min,&max);
 
-			dynamic_threshold = S->threshold + S->weights[j] + S->weights[k];
+			dynamic_threshold = S->threshold + S->weights[S->order[j]] + S->weights[S->order[k]];
 			// Limit threshold to a hard cutoff so execution does not suffer
 			if(dynamic_threshold > S->max_total_threshold){
 				dynamic_threshold = S->max_total_threshold;
@@ -236,12 +269,14 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			max += dynamic_threshold;
 			if(min<0.5) min=0.5;
 
-			S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[j]->x,min,max,3);
+			assert(S->atom[S->order[j]]);
+			// S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[S->order[j]]->x,min,max,3);
+			S->regions[k]->R[j]=Annulus_create(S->atom[S->order[j]]->x,min,max,3);
 		}
 
-		S->active[k]=true;
-		S->query[k]=KdTreeQuery_reuse(S->query[k],S->tree[k],S->regions[k]);
-		if(!S->query[k]) return NULL;
+		S->active[S->order[k]]=true;
+		S->query[S->order[k]]=KdTreeQuery_reuse(S->query[S->order[k]],S->tree[S->order[k]],S->regions[k]);
+		if(!S->query[S->order[k]]) return NULL;
 	}
 
 	// If k<0 there is no more!
