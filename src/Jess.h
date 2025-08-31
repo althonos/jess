@@ -8,6 +8,8 @@
 #ifndef JESS_H
 #define JESS_H
 
+#include <stdbool.h>
+
 #include "Super.h"
 #include "Molecule.h"
 #include "Template.h"
