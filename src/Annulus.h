@@ -41,8 +41,8 @@ typedef struct _Annulus Annulus;
 // free(A)				Free the region given (or use R->free)
 // ==================================================================
 
-extern Annulus *Annulus_create(double*,double,double,int);
-extern Annulus *Annulus_reuse(Annulus*,double*,double,double,int);
+extern Annulus *Annulus_create(const double*,double,double,int);
+extern Annulus *Annulus_reuse(Annulus*,const double*,double,double,int);
 extern void Annulus_free(Annulus*);
 
 // ==================================================================
@@ -52,7 +52,7 @@ extern void Annulus_free(Annulus*);
 int Annulus_po(Region *vA, double *x, int d);
 int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d);
 
-static inline int _Annulus_po(Annulus *A, double *x, int d)
+static inline int _Annulus_po(const Annulus* A, const double* x, int d)
 {
 	double tmp,sum;
 	int i;
@@ -78,7 +78,7 @@ static inline int _Annulus_po(Annulus *A, double *x, int d)
 #define Jess_max(x,y) (x>y ? x:y)
 #endif
 
-static inline int _Annulus_ro(Annulus *A, double *minBox, double *maxBox, int d)
+static inline int _Annulus_ro(const Annulus *A, const double* restrict minBox, const double* restrict maxBox, int d)
 {
 	int i;
 	double t1,t2;

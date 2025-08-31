@@ -26,7 +26,7 @@ struct _CandidateSet
 	size_t count;
 	size_t capacity;
 	Atom **atom;
-	double **coord;
+	const double **coord;
 };
 
 typedef struct _CandidateSet CandidateSet;

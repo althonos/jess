@@ -30,14 +30,14 @@ int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d)
 // Methods of for regions of type Annulus
 // ==================================================================
 
-Annulus *Annulus_create(double *u, double a, double b, int d)
+Annulus *Annulus_create(const double *u, double a, double b, int d)
 {
 	Annulus *A;
 	A = (Annulus*)malloc(sizeof(Annulus));
 	return Annulus_reuse(A,u,a,b,d);
 }
 
-Annulus *Annulus_reuse(Annulus *A, double *u, double a, double b, int d)
+Annulus *Annulus_reuse(Annulus *A, const double *u, double a, double b, int d)
 {
 	double tmp;
 

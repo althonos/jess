@@ -52,10 +52,10 @@ extern JessQuery *Jess_query(Jess*,Molecule*,double,double,bool);
 
 extern void JessQuery_free(JessQuery*);
 extern int JessQuery_next(JessQuery*, int);
-extern Template *JessQuery_template(JessQuery*);
-extern const Molecule *JessQuery_molecule(JessQuery*);
-extern Atom **JessQuery_atoms(JessQuery*);
-extern Superposition *JessQuery_superposition(JessQuery*);
+extern Template *JessQuery_template(const JessQuery*);
+extern const Molecule *JessQuery_molecule(const JessQuery*);
+extern Atom **JessQuery_atoms(const JessQuery*);
+extern Superposition *JessQuery_superposition(const JessQuery*);
 
 // ==================================================================
 

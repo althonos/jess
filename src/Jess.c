@@ -156,24 +156,24 @@ void JessQuery_free(JessQuery *Q)
 	}
 }
 
-Template *JessQuery_template(JessQuery *Q)
+Template *JessQuery_template(const JessQuery *Q)
 {
 	if(!Q->node) return NULL;
 	return Q->node->template;
 }
 
-const Molecule *JessQuery_molecule(JessQuery *Q)
+const Molecule *JessQuery_molecule(const JessQuery *Q)
 {
 	return Q->molecule;
 }
 
-Atom **JessQuery_atoms(JessQuery *Q)
+Atom **JessQuery_atoms(const JessQuery *Q)
 {
 	if(!Q->atoms) return NULL;
 	return Q->atoms;
 }
 
-Superposition *JessQuery_superposition(JessQuery *Q)
+Superposition *JessQuery_superposition(const JessQuery *Q)
 {
 	int i;
 	int count;

@@ -116,7 +116,7 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
     return I;
 }
 
-extern int ResIndex_find(ResIndex* I, const char resName[4]) {
+extern int ResIndex_find(const ResIndex* I, const char resName[4]) {
     //NB: As the names have been sorted with `qsort`, we can use a binary search
     
     int cmp;
@@ -143,13 +143,13 @@ extern int ResIndex_find(ResIndex* I, const char resName[4]) {
     return -1;
 }
 
-extern Atom** ResIndex_get(ResIndex* I, const char resName[4])
+extern Atom** ResIndex_get(const ResIndex* I, const char resName[4])
 {
     int i = ResIndex_find(I, resName);
     return ResIndex_values(I, i);
 }
 
-extern Atom** ResIndex_values(ResIndex* I, int i)
+extern Atom** ResIndex_values(const ResIndex* I, int i)
 {
     static Atom* noatom = NULL;
     if(i > I->n || i < 0) return &noatom;

@@ -55,7 +55,7 @@ struct _KdTreeNode
 // free(N)				Frees a node and all its descendants
 // ==================================================================
 
-static index_t KdTreeNode_create(KdTree*,int*,int,int,double**,int);
+static index_t KdTreeNode_create(KdTree*,int*,int,int,const double**,int);
 // static void KdTreeNode_free(KdTreeNode*);
 
 // ==================================================================
@@ -89,8 +89,8 @@ struct _KdTree
 
 struct _KdTreeQuery
 {
-	KdTree *tree;
-	Join *region;
+	const KdTree* tree;
+	const Join* region;
 	Box box;
 	int count;
 	int maxdepth;
@@ -118,7 +118,7 @@ static int KdTree_index;
 
 struct _KdTreeCompareData
 {
-      double** data;
+      const double** data;
       int index;
 };
 
@@ -126,7 +126,7 @@ struct _KdTreeCompareData
 // Public methods of type KdTree
 // ==================================================================
 
-KdTree *KdTree_create(double **u, int n, int d)
+KdTree *KdTree_create(const double **u, int n, int d)
 {
 	KdTree *K;
 	int i,j;
@@ -145,7 +145,7 @@ KdTree *KdTree_create(double **u, int n, int d)
 	return KdTree_reuse(K,u,n,d);
 }
 
-KdTree *KdTree_reuse(KdTree *K, double **u, int n, int d)
+KdTree *KdTree_reuse(KdTree *K, const double **u, int n, int d)
 {
 	int i,j;
 	int *tmp;
@@ -238,9 +238,10 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 
 int KdTreeQuery_next(KdTreeQuery *Q)
 {
-	KdTreeNode *N;
-	Join *J = Q->region;
-	Box *B = &Q->box;
+	const KdTreeNode* N;
+	const Join* J = Q->region;
+	const Box* B = &Q->box;
+	JoinType jointype = J->type;
 	index_t *stack=&(Q->stack[0]);
 	int *count = &(Q->count);
 
@@ -275,14 +276,14 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 		// the node's region then we can remove it
 		// and continue with the rest of the stack.
 
-		// if(J->type==innerJoin)
-		// {
-		if(!_Box_ro(B,N->min,N->max,DIM)) continue;
-		// }
-		// else
-		// {
-		// 	if(!_Join_ro(J,N->min,N->max,dim)) continue;
-		// }
+		if(jointype==innerJoin)
+		{
+			if(!_Box_ro(B,N->min,N->max,DIM)) continue;
+		}
+		else
+		{
+			if(!_Join_ro(J,N->min,N->max,DIM)) continue;
+		}
 
 		// The query region *does* intersect the node's
 		// region. So now we must place the child nodes
@@ -340,7 +341,7 @@ static int KdTree_compare_r(const void* pa, const void* pb, void* data)
 #define Jess_max(x,y) (x>y ? x:y)
 #endif
 
-static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u,int dim)
+static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,const double **u,int dim)
 {
 	KdTreeNode *N;
 	int split;

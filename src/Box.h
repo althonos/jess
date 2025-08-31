@@ -54,7 +54,7 @@ extern void Box_free(Region*);
 int Box_po(Region *vA, double *x, int d);
 int Box_ro(Region *vA, double *minBox, double *maxBox, int d);
 
-static inline int _Box_po(Box *B, double *x, int d)
+static inline int _Box_po(const Box *B, const double *x, int d)
 {
 	int i;
 
@@ -69,7 +69,7 @@ static inline int _Box_po(Box *B, double *x, int d)
     return 1;
 }
 
-static inline int _Box_ro(Box *B, double *minBox, double *maxBox, int d)
+static inline int _Box_ro(const Box *B, const double* restrict minBox, const double* restrict maxBox, int d)
 {
 	int i;
 

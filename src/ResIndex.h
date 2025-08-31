@@ -37,9 +37,9 @@ typedef struct _ResIndex ResIndex;
 // ==================================================================
 
 extern ResIndex* ResIndex_create(Atom**,int);
-extern Atom** ResIndex_get(ResIndex*, const char[4]);
-extern int ResIndex_find(ResIndex*, const char[4]);
-extern Atom** ResIndex_values(ResIndex* I, int i);
+extern Atom** ResIndex_get(const ResIndex*, const char[4]);
+extern int ResIndex_find(const ResIndex*, const char[4]);
+extern Atom** ResIndex_values(const ResIndex* I, int i);
 extern void ResIndex_free(ResIndex*);
 
 #endif

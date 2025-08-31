@@ -69,7 +69,7 @@ extern void Join_free(Join*);
 // The oracles
 // ==================================================================
 
-static inline int _Join_oro(Join *J,double *min,double *max,int dim)
+static inline int _Join_oro(const Join *J,const double* restrict min, const double* restrict max,int dim)
 {
 	Annulus* A;
 	int k;
@@ -86,7 +86,7 @@ static inline int _Join_oro(Join *J,double *min,double *max,int dim)
 	return 0;
 }
 
-static inline int _Join_iro(Join *J,double *min,double *max,int dim)
+static inline int _Join_iro(const Join *J,const double* restrict min,const double* restrict max,int dim)
 {
 	Annulus* A;
 	int k;
@@ -103,7 +103,7 @@ static inline int _Join_iro(Join *J,double *min,double *max,int dim)
 	return 1;
 }
 
-static inline int _Join_opo(Join *J,double *x,int dim)
+static inline int _Join_opo(const Join *J,const double *x,int dim)
 {
 	Annulus* A;
 	int k;
@@ -120,7 +120,7 @@ static inline int _Join_opo(Join *J,double *x,int dim)
 	return 0;
 }
 
-static inline int _Join_ipo(Join *J,double *x,int dim)
+static inline int _Join_ipo(const Join *J,const double *x,int dim)
 {
 	Annulus* A;
 	int k;
@@ -137,12 +137,12 @@ static inline int _Join_ipo(Join *J,double *x,int dim)
 	return 1;
 }
 
-static inline int _Join_ro(Join *J,double *min, double *max, int dim)
+static inline int _Join_ro(const Join *J,const double* restrict min, const double* restrict max, int dim)
 {
     return (J->type == innerJoin) ? _Join_iro(J,min,max,dim) : _Join_oro(J,min,max,dim);
 }
 
-static inline int _Join_po(Join *J,double *x, int dim)
+static inline int _Join_po(const Join *J,const double *x, int dim)
 {
     return (J->type == innerJoin) ? _Join_ipo(J,x,dim) : _Join_opo(J,x,dim);
 }

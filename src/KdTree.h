@@ -30,8 +30,8 @@ typedef struct _KdTreeQuery KdTreeQuery;
 // query(K,R)				Initialise a query object (see code)
 // ==================================================================
 
-extern KdTree *KdTree_create(double**,int,int);
-extern KdTree *KdTree_reuse(KdTree *K, double **u, int n, int d);
+extern KdTree *KdTree_create(const double**,int,int);
+extern KdTree *KdTree_reuse(KdTree *K, const double **u, int n, int d);
 extern void KdTree_free(KdTree*);
 extern KdTreeQuery *KdTree_query(KdTree*,Join*);
 
