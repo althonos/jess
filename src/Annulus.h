@@ -70,52 +70,46 @@ static inline int _Annulus_po(Annulus *A, double *x, int d)
 	return sum<A->min || sum>A->max ? 0:1;
 }
 
+#ifndef Jess_min
+#define Jess_min(x,y) (x<y ? x:y)
+#endif
+
+#ifndef Jess_max
+#define Jess_max(x,y) (x>y ? x:y)
+#endif
+
 static inline int _Annulus_ro(Annulus *A, double *minBox, double *maxBox, int d)
 {
 	int i;
+	double t1,t2;
+	double minSum, maxSum;
 
 	if(d!=A->dim) return 0;
 
 	// Does the box region [minBox,maxBox] intersect the annulus A?
 
-	// NB: This function is called in `KdTreeQuery` code to compute
-	//	   which branches of the k-D tree to discard while searching
-	//	   for a particular point; to speed-up querying, we only
-	//	   compute the intersection with the bounding box around the
-	//	   annulus rather than the annulus itself. This may cause some
-	//	   false positives, but since we still compute the inclusion
-	//	   in `Annulus_po` with the exact formula, the `KdTreeQuery`
-	//	   will never return a "wrong" answer.
-
+	minSum=0.0;
+	maxSum=0.0;
 	for(i=0; i<ANNULUS_DIM; i++)
-		if(!((minBox[i] <= A->maxBox[i] ) && (A->minBox[i] <= maxBox[i])))
-			return 0;
-
-	return 1;
-
-	// NB: Exact version for reference.
-
-	// minSum=0.0;
-	// maxSum=0.0;
-	// for(i=0; i<ANNULUS_DIM; i++)
-	// {
-	// 	t1 = A->centre[i]-minBox[i];
-	// 	t2 = A->centre[i]-maxBox[i];
-	// 	t1 *= t1;
-	// 	t2 *= t2;
-	// 	if(minBox[i]>A->centre[i] || maxBox[i]<A->centre[i])
-	// 	{
-	// 		minSum += min(t1,t2);
-	// 	}
-	// 	maxSum += max(t1,t2);
-	// }
-	// return minSum>A->max || maxSum<A->min ? 0:1;
+	{
+		t1 = A->centre[i]-minBox[i];
+		t2 = A->centre[i]-maxBox[i];
+		t1 *= t1;
+		t2 *= t2;
+		if(minBox[i]>A->centre[i] || maxBox[i]<A->centre[i])
+		{
+			minSum += Jess_min(t1,t2);
+		}
+		maxSum += Jess_max(t1,t2);
+	}
+	return minSum>A->max || maxSum<A->min ? 0:1;
 
 }
 
+#undef Jess_min
+#undef Jess_max
+
 // ==================================================================
 
-#undef min
-#undef max
 #endif
 

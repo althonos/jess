@@ -11,6 +11,7 @@
 #define JOIN_H
 
 #include "Annulus.h"
+#include "Box.h"
 #include "Region.h"
 
 // ==================================================================
@@ -26,7 +27,9 @@ typedef enum {innerJoin,outerJoin} JoinType;
 // type Join
 // ==================================================================
 // count				The number of regions in the join
+// type					The type of the join (inner or outer)
 // R[k]					The kth region in the join
+// Box					A bounding box around the join region.
 // ==================================================================
 
 typedef struct _Join Join;
@@ -46,7 +49,8 @@ struct _Join
 // ==================================================================
 
 extern Join *Join_allocate(int,JoinType);
-extern Join *Join_create(Annulus**,int,JoinType);
+extern Join *Join_create(const Annulus**,int,JoinType);
+extern void Join_computeBox(const Join*,Box*);
 extern void Join_free(Join*);
 
 // ==================================================================

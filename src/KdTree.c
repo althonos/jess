@@ -89,6 +89,7 @@ struct _KdTreeQuery
 {
 	KdTree *tree;
 	Join *region;
+	Box box;
 	int count;
 	int maxdepth;
 	index_t stack[0];
@@ -197,19 +198,7 @@ void KdTree_free(KdTree *K)
 
 KdTreeQuery *KdTree_query(KdTree *K, Join *J)
 {
-	KdTreeQuery *Q;
-	int rq;
-
-	rq = sizeof(KdTreeQuery)+K->nodes[K->root].depth*sizeof(index_t);
-
-	Q = (KdTreeQuery*)malloc(rq);
-	Q->tree=K;
-	Q->region=J;
-	Q->count=1;
-	Q->maxdepth=(K->root==NO_NODE) ? 0 : K->nodes[K->root].depth;
-	Q->stack[0]=K->root;
-
-	return Q;
+	return KdTreeQuery_reuse(NULL,K,J);
 }
 
 // ==================================================================
@@ -220,9 +209,7 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 {
 	int rq;
 
-	if((!Q)) return KdTree_query(K,J);
-
-	if((Q->maxdepth < K->nodes[K->root].depth))
+	if(!(Q) || (Q->maxdepth < K->nodes[K->root].depth))
 	{
 		rq = sizeof(KdTreeQuery)+K->nodes[K->root].depth*sizeof(index_t);
 		Q=(KdTreeQuery*)realloc(Q,rq);
@@ -235,6 +222,13 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 	Q->count=1;
 	Q->stack[0]=K->root;
 
+	// NB: compute a bounding box around the `Join` so we can use
+	//	   the bounding box to compute intersections in `KdTreeQuery_next`
+	//	   instead of computing the individual `Annulus` intersections.
+
+	Q->box.dim = K->dim;
+	Join_computeBox(Q->region,&Q->box);
+
 	return Q;
 }
 
@@ -242,6 +236,7 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 {
 	KdTreeNode *N;
 	Join *J = Q->region;
+	Box *B = &Q->box;
 	index_t *stack=&(Q->stack[0]);
 	int dim = Q->tree->dim;
 	int *count = &(Q->count);
@@ -277,9 +272,13 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 		// the node's region then we can remove it
 		// and continue with the rest of the stack.
 
-		if(!_Join_ro(J,N->min,N->max,dim))
+		if(J->type==innerJoin)
 		{
-			continue;
+			if(!_Box_ro(B,N->min,N->max,dim)) continue;
+		}
+		else
+		{
+			if(!_Join_ro(J,N->min,N->max,dim)) continue;
 		}
 
 		// The query region *does* intersect the node's
@@ -352,7 +351,7 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u
 	// 1.5. We'll need to create a node in all other cases.
 
 	if(K->count>=K->capacity) {
-		K->capacity = (K->capacity == 0) ? 32 : K->capacity*2;
+		K->capacity = K->capacity + (K->capacity >> 3) + 6;
 		K->nodes = realloc(K->nodes, K->capacity*sizeof(KdTreeNode));
 		if(!K->nodes) return NO_NODE;
 	}
@@ -420,8 +419,8 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,double **u
 	return k;
 }
 
-#undef min
-#undef max
+#undef Jess_min
+#undef Jess_max
 
 // ==================================================================
 
