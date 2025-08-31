@@ -80,7 +80,8 @@ static int _CandidateSet_size_compare(const void* a, const void* b)
 {
 	int x = *((int*)a);
 	int y = *((int*)b);
-	return candidates[x]->count - candidates[y]->count;
+	int diff = candidates[x]->count - candidates[y]->count;
+	return (diff == 0) ? x-y : diff;
 }
 #endif
 
@@ -93,7 +94,8 @@ static int _CandidateSet_size_compare_r(void* data, const void* a, const void* b
 	CandidateSet** candidates = (CandidateSet**) data;
 	int x = *((int*)a);
 	int y = *((int*)b);
-	return candidates[x]->count - candidates[y]->count;
+	int diff = candidates[x]->count - candidates[y]->count;
+	return (diff == 0) ? x-y : diff;
 }
 
 Scanner *Scanner_create(Molecule *M, Template *T, ScannerData* D, double r, double s, bool reorder)
