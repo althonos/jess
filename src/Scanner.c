@@ -23,8 +23,6 @@
 
 struct _ScannerData
 {
-	size_t count;
-	size_t capacity;
 	CandidateSet** candidates;
 	int* index;
 	Atom** atom;
@@ -33,6 +31,9 @@ struct _ScannerData
 	KdTree **trees;
 	KdTreeQuery **queries;
 	double* weights;
+	int* order;
+	size_t count;
+	size_t capacity;
 };
 
 // ==================================================================
@@ -107,7 +108,7 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 	S->regions=D->regions;
 	S->active=D->active;
 	S->weights=D->weights;
-	S->order=(int*)calloc(n,sizeof(int));
+	S->order=D->order;
 
 	S->template=T;
 	S->threshold=r;
@@ -160,7 +161,6 @@ void Scanner_free(Scanner *S)
 {
 	if(S)
 	{
-		if(S->order) free(S->order);
 		free(S);
 	}
 }
@@ -177,11 +177,6 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 
 	while(k>=0)
 	{
-		// printf("k=%i S->order[k]=%i atoms[ ",k,S->order[k]);
-		// for(j=0;j<S->count;j++) {
-		// 	printf("%i ", (S->atom[S->order[j]]) ? S->atom[S->order[j]]->serial : -1);
-		// }
-		// printf("]\n");
 		// If k==S->count, we have a hit!
 
 		if(k==S->count) break;
@@ -196,12 +191,10 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			if(S->index[S->order[0]]>=S->set[S->order[0]]->count)
 			{
 				// End of query...
-
 				k=-1;
 			}
 			else
 			{
-				// printf("Adding atom %i at index %i\n", S->set[S->order[0]]->atom[S->index[S->order[0]]]->serial, S->order[0]);
 				S->atom[S->order[0]]=S->set[S->order[0]]->atom[S->index[S->order[0]]];
 				k++;
 			}
@@ -220,7 +213,6 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 				// The query ended. So we need to destroy
 				// this query, then drop down a level...
 
-				// printf("Dropping atom: %i\n", S->order[k]);
 				S->active[S->order[k]]=false;
 				S->atom[S->order[k]]=NULL;
 				k--;
@@ -231,7 +223,6 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 				// atom, check n-ary constraints and continue
 				// up...
 
-				// printf("Adding atom: %i\n", S->order[k]);
 				S->atom[S->order[k]]=S->set[S->order[k]]->atom[S->index[S->order[k]]];
 				if(S->template->check(S->template,S->atom,S->order,k+1,ignore_chain))
 				{
@@ -270,7 +261,6 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			if(min<0.5) min=0.5;
 
 			assert(S->atom[S->order[j]]);
-			// S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[S->order[j]]->x,min,max,3);
 			S->regions[k]->R[j]=Annulus_create(S->atom[S->order[j]]->x,min,max,3);
 		}
 
@@ -306,6 +296,7 @@ ScannerData *ScannerData_create()
 	D->queries=NULL;
 	D->trees=NULL;
 	D->weights=NULL;
+	D->order=NULL;
 	return D;
 }
 
@@ -337,6 +328,7 @@ void ScannerData_free(ScannerData* D)
 		if(D->atom) free(D->atom);
 		if(D->active) free(D->active);
 		if(D->weights) free(D->weights);
+		if(D->order) free(D->order);
 		free(D);
 	}
 }
@@ -380,6 +372,9 @@ int ScannerData_resize(ScannerData* D, int n)
 
 		D->weights=(double*)realloc(D->weights,n*sizeof(double));
 		if(!D->weights) return -1;
+
+		D->order=(int*)realloc(D->order,n*sizeof(int));
+		if(!D->order) return -1;
 
 		D->capacity=n;
 	}
