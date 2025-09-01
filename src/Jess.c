@@ -194,6 +194,16 @@ Superposition *JessQuery_superposition(const JessQuery *Q)
 	return super;
 }
 
+int JessQuery_nextTemplate(JessQuery *Q)
+{
+	Q->scan=false;
+	Superposition_free(Q->super);
+	Q->super=NULL;
+	Q->atoms=NULL;
+	Q->node=Q->node->next;
+	return (Q->node) ? 1 : 0;
+}
+
 int JessQuery_next(JessQuery *Q, int ignore_chain)
 {
 	Template *T;
