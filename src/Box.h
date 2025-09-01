@@ -63,7 +63,7 @@ static inline int _Box_po(const Box *B, const double *x, int d)
 	if(B->dim!=d) return 0;
 
     for(i=0;i<d;i++)
-        if(!( (x[i] >= B->min[i]) && (x[i] <= B->max[i]) ))
+        if(!((x[i]>=B->min[i]) && (x[i]<=B->max[i])))
             return 0;
 
     return 1;
@@ -78,8 +78,8 @@ static inline int _Box_ro(const Box *B, const double* restrict minBox, const dou
 	// Does the box region [minBox,maxBox] intersect the box B?
 
 	for(i=0; i<d; i++)
-        if(! ((minBox[i]<=B->max[d]) && (B->min[d]<=maxBox[d])) )
-            return 1;
+        if((minBox[i]>B->max[i]) || (B->min[i]>maxBox[i]))
+            return 0;
 
 	return 1;
 }
