@@ -14,6 +14,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <stdint.h>
 
 // ==================================================================
 // Global constants
@@ -120,7 +121,7 @@ static void search(const char *filename,Jess *J,double tRmsd,double tDistance,do
 {
 	Molecule *M;
 	Superposition *sup;
-	Template *T;
+	Template *T, *Tprev;
 	Atom **A;
 	FILE *file;
 	JessQuery *Q;
@@ -146,10 +147,20 @@ static void search(const char *filename,Jess *J,double tRmsd,double tDistance,do
 	}
 
 	Q=Jess_query(J,M,tDistance,max_total_threshold,fastScan);
+	T=JessQuery_template(Q);
 
-	while(JessQuery_next(Q, ignore_chain) && killswitch<1000)
+	while(JessQuery_next(Q, ignore_chain))
 	{
+		Tprev=T;
 		T=JessQuery_template(Q);
+		// printf("current template: %s\n", T->name(T));
+
+		killswitch = (T!=Tprev) ? 0 : killswitch + 1;
+		if(killswitch == 1000)
+		{
+			JessQuery_nextTemplate(Q);
+			continue;
+		}
 
 		count=T->count(T);
 		sup = JessQuery_superposition(Q);
@@ -195,7 +206,6 @@ static void search(const char *filename,Jess *J,double tRmsd,double tDistance,do
 		}
 
 		Superposition_free(sup);
-		killswitch+=1;
 	}
 
 	JessQuery_free(Q);
