@@ -29,7 +29,6 @@ struct _Annulus
 	double maxBox[ANNULUS_DIM];
 	double min;
 	double max;
-	int dim;
 };
 
 typedef struct _Annulus Annulus;
@@ -37,27 +36,25 @@ typedef struct _Annulus Annulus;
 // ==================================================================
 // Methods for Annulus manipulation
 // ==================================================================
-// create(u,a,b,d)		Make region {x in R^d : a <= |x-u| <= b }.
+// create(u,a,b)		Make region {x in R^3 : a <= |x-u| <= b }.
 // free(A)				Free the region given (or use R->free)
 // ==================================================================
 
-extern Annulus *Annulus_create(const double*,double,double,int);
-extern Annulus *Annulus_reuse(Annulus*,const double*,double,double,int);
+extern Annulus *Annulus_create(const double*,double,double);
+extern Annulus *Annulus_reuse(Annulus*,const double*,double,double);
 extern void Annulus_free(Annulus*);
 
 // ==================================================================
 // Oracles
 // ==================================================================
 
-int Annulus_po(Region *vA, double *x, int d);
-int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d);
+int Annulus_po(Region *vA, double *x);
+int Annulus_ro(Region *vA, double *minBox, double *maxBox);
 
-static inline int _Annulus_po(const Annulus* A, const double* x, int d)
+static inline int _Annulus_po(const Annulus* A, const double* x)
 {
 	double tmp,sum;
 	int i;
-
-	if(A->dim!=d) return 0;
 
 	// Does x lie within annulus A?
 
@@ -78,13 +75,11 @@ static inline int _Annulus_po(const Annulus* A, const double* x, int d)
 #define Jess_max(x,y) (x>y ? x:y)
 #endif
 
-static inline int _Annulus_ro(const Annulus *A, const double* restrict minBox, const double* restrict maxBox, int d)
+static inline int _Annulus_ro(const Annulus *A, const double* restrict minBox, const double* restrict maxBox)
 {
 	int i;
 	double t1,t2;
 	double minSum, maxSum;
-
-	if(d!=A->dim) return 0;
 
 	// Does the box region [minBox,maxBox] intersect the annulus A?
 

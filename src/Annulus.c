@@ -14,35 +14,34 @@
 // Oracles for type Annulus
 // ==================================================================
 
-int Annulus_po(Region *vA, double *x, int d)
+int Annulus_po(Region *vA, double *x)
 {
 	Annulus *A=(Annulus*)&vA[1];
-	return _Annulus_po(A, x, d);
+	return _Annulus_po(A, x);
 }
 
-int Annulus_ro(Region *vA, double *minBox, double *maxBox, int d)
+int Annulus_ro(Region *vA, double *minBox, double *maxBox)
 {
 	Annulus *A=(Annulus*)&vA[1];
-	return _Annulus_ro(A, minBox, maxBox, d);
+	return _Annulus_ro(A, minBox, maxBox);
 }
 
 // ==================================================================
 // Methods of for regions of type Annulus
 // ==================================================================
 
-Annulus *Annulus_create(const double *u, double a, double b, int d)
+Annulus *Annulus_create(const double *u, double a, double b)
 {
 	Annulus *A;
 	A = (Annulus*)malloc(sizeof(Annulus));
-	return Annulus_reuse(A,u,a,b,d);
+	return Annulus_reuse(A,u,a,b);
 }
 
-Annulus *Annulus_reuse(Annulus *A, const double *u, double a, double b, int d)
+Annulus *Annulus_reuse(Annulus *A, const double *u, double a, double b)
 {
 	double tmp;
 
-	if(!A) return Annulus_create(u,a,b,d);
-	if(d!=ANNULUS_DIM) return NULL;
+	if(!A) return Annulus_create(u,a,b);
 
 	if(b<a)
 	{
@@ -57,7 +56,6 @@ Annulus *Annulus_reuse(Annulus *A, const double *u, double a, double b, int d)
 	memcpy(A->centre,u,sizeof(double)*ANNULUS_DIM);
 	A->min=a*a;
 	A->max=b*b;
-	A->dim=d;
 
 	for(int i=0; i<ANNULUS_DIM;i++)
 	{

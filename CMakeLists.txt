@@ -19,6 +19,7 @@ check_source_runs(C
 add_library(jess)
 target_sources(jess PRIVATE
 	src/Annulus.c
+	src/Box.c
 	src/Join.c
 	src/Molecule.c
 	src/Super.c

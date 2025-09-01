@@ -15,7 +15,6 @@
 #include <stdint.h>
 
 #define NO_NODE	SIZE_MAX
-#define MAX_DIM 3
 #define DIM 3
 
 // ==================================================================
@@ -41,8 +40,8 @@ struct _KdTreeNode
 {
 	index_t left;
 	index_t right;
-	double min[MAX_DIM];
-	double max[MAX_DIM];
+	double min[DIM];
+	double max[DIM];
 	int type;
 	int index;
 	int depth;
@@ -55,7 +54,7 @@ struct _KdTreeNode
 // free(N)				Frees a node and all its descendants
 // ==================================================================
 
-static index_t KdTreeNode_create(KdTree*,int*,int,int,const double**,int);
+static index_t KdTreeNode_create(KdTree*,int*,int,int,const double**);
 // static void KdTreeNode_free(KdTreeNode*);
 
 // ==================================================================
@@ -66,7 +65,6 @@ static index_t KdTreeNode_create(KdTree*,int*,int,int,const double**,int);
 // node					The nodes stored in an array
 // capacity				The capacity of the node array
 // count				The number of element in the node array
-// dim					The dimension of the tree (at most MAX_DIM)
 // ==================================================================
 
 struct _KdTree
@@ -75,7 +73,6 @@ struct _KdTree
 	size_t count;
 	size_t capacity;
 	index_t root;
-	int dim;
 };
 
 // ==================================================================
@@ -126,13 +123,13 @@ struct _KdTreeCompareData
 // Public methods of type KdTree
 // ==================================================================
 
-KdTree *KdTree_create(const double **u, int n, int d)
+KdTree *KdTree_create(const double **u, int n)
 {
 	KdTree *K;
 	int i,j;
 	int *tmp;
 
-	assert(!(n<1 || d<1 || !u || d>MAX_DIM || d!=DIM));
+	assert(!(n<1 || !u));
 
 	K = (KdTree*)malloc(sizeof(KdTree));
 	if(!K) return NULL;
@@ -142,22 +139,26 @@ KdTree *KdTree_create(const double **u, int n, int d)
 	K->capacity=0;
 	K->count=0;
 
-	return KdTree_reuse(K,u,n,d);
+	return KdTree_reuse(K,u,n);
 }
 
-KdTree *KdTree_reuse(KdTree *K, const double **u, int n, int d)
+KdTree *KdTree_reuse(KdTree *K, const double **u, int n)
 {
 	int i,j;
 	int *tmp;
 
-	if(!K) return KdTree_create(u,n,d);
+	if(!K) {
+		K = (KdTree*)malloc(sizeof(KdTree));
+		if(!K) return NULL;
+		K->nodes=NULL;
+		K->capacity=0;
+	}
 
-	if((n<1 || d<1 || !u) || (d!=DIM)) {
+	if(n<1 || !u) {
 		KdTree_free(K);
 		return NULL;
 	}
 
-	K->dim=d;
 	K->count=0;
 	K->root=NO_NODE;
 
@@ -170,7 +171,7 @@ KdTree *KdTree_reuse(KdTree *K, const double **u, int n, int d)
 	// of order at most n.log(n)^2, assuming that qsort
 	// always manages n.log(n) and d is constant.
 
-	K->root = KdTreeNode_create(K,tmp,n,0,u,d);
+	K->root = KdTreeNode_create(K,tmp,n,0,u);
 	free(tmp);
 
 	if(K->root == NO_NODE) 
@@ -209,7 +210,6 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 	int rq;
 
 	assert(K);
-	assert(K->dim == DIM);
 	assert(J);
 	assert(J->type == innerJoin);
 
@@ -230,7 +230,6 @@ KdTreeQuery *KdTreeQuery_reuse(KdTreeQuery *Q, KdTree *K, Join *J)
 	//	   the bounding box to compute intersections in `KdTreeQuery_next`
 	//	   instead of computing the individual `Annulus` intersections.
 
-	Q->box.dim = DIM;
 	Join_computeBox(Q->region,&Q->box);
 
 	return Q;
@@ -261,7 +260,7 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 
 		if(N->type<0)
 		{
-			if(_Join_po(J,N->min,DIM))
+			if(_Join_po(J,N->min))
 			{
 				return N->index;
 			}
@@ -278,11 +277,11 @@ int KdTreeQuery_next(KdTreeQuery *Q)
 
 		if(jointype==innerJoin)
 		{
-			if(!_Box_ro(B,N->min,N->max,DIM)) continue;
+			if(!_Box_ro(B,N->min,N->max)) continue;
 		}
 		else
 		{
-			if(!_Join_ro(J,N->min,N->max,DIM)) continue;
+			if(!_Join_ro(J,N->min,N->max)) continue;
 		}
 
 		// The query region *does* intersect the node's
@@ -341,7 +340,7 @@ static int KdTree_compare_r(const void* pa, const void* pb, void* data)
 #define Jess_max(x,y) (x>y ? x:y)
 #endif
 
-static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,const double **u,int dim)
+static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,const double **u)
 {
 	KdTreeNode *N;
 	int split;
@@ -375,8 +374,8 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,const doub
 		N->depth=1;
 		N->left = NO_NODE;
 		N->right = NO_NODE;
-		memcpy(N->min,u[idx[0]],sizeof(double)*dim);
-		memcpy(N->max,u[idx[0]],sizeof(double)*dim);
+		memcpy(N->min,u[idx[0]],sizeof(double)*DIM);
+		memcpy(N->max,u[idx[0]],sizeof(double)*DIM);
 		return k;
 	}
  
@@ -396,9 +395,9 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,const doub
 
 	// Now create the left and right branches of the node.
 
-	type = (type+1)%dim;
-	left = KdTreeNode_create(K, idx,split,type,u,dim);
-	right = KdTreeNode_create(K, &idx[split],n-split,type,u,dim);
+	type = (type+1)%DIM;
+	left = KdTreeNode_create(K, idx,split,type,u);
+	right = KdTreeNode_create(K, &idx[split],n-split,type,u);
 	if((left==NO_NODE) || (right==NO_NODE)) return NO_NODE;
 
 	// DANGER: we need to update the pointer `N` because the memory for
@@ -413,7 +412,7 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,const doub
 	// Compute max,min and depth...
 	N->depth=Jess_max(K->nodes[left].depth,K->nodes[right].depth)+1;
 
-	for(i=0; i<dim; i++)
+	for(i=0; i<DIM; i++)
 	{
 		N->min[i]=Jess_min(K->nodes[left].min[i],K->nodes[right].min[i]);
 		N->max[i]=Jess_max(K->nodes[left].max[i],K->nodes[right].max[i]);

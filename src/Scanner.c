@@ -148,7 +148,7 @@ Scanner *Scanner_reuse(Scanner *S, Molecule *M, Template *T, ScannerData* D, dou
 			return NULL;
 		}
 
-		S->tree[k]=KdTree_reuse(S->tree[k],S->set[k]->coord,S->set[k]->count,3);
+		S->tree[k]=KdTree_reuse(S->tree[k],S->set[k]->coord,S->set[k]->count);
 		if(!S->tree[k])
 		{
 			Scanner_free(S);
@@ -286,7 +286,7 @@ Atom **Scanner_next(Scanner *S, int ignore_chain)
 			if(min<0.5) min=0.5;
 
 			assert(S->atom[S->order[j]]);
-			S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[S->order[j]]->x,min,max,3);
+			S->regions[k]->R[j]=Annulus_reuse(S->regions[k]->R[j],S->atom[S->order[j]]->x,min,max);
 		}
 
 		S->active[S->order[k]]=true;

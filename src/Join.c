@@ -18,28 +18,28 @@
 // Oracles for type Join
 // ==================================================================
 
-int Join_oro(Region *R,double *min,double *max,int dim) 
+int Join_oro(Region *R,double *min,double *max) 
 {
 	Join *J=(Join*)&R[1];
-	return _Join_oro(J,min,max,dim);
+	return _Join_oro(J,min,max);
 }
 
-int Join_iro(Region *R,double *min,double *max,int dim) 
+int Join_iro(Region *R,double *min,double *max) 
 {
 	Join *J=(Join*)&R[1];
-	return _Join_iro(J,min,max,dim);
+	return _Join_iro(J,min,max);
 }
 
-int Join_opo(Region *R,double *x,int dim)
+int Join_opo(Region *R,double *x)
 {
 	Join *J=(Join*)&R[1];
-	return _Join_opo(J,x,dim);
+	return _Join_opo(J,x);
 }
 
-int Join_ipo(Region *R,double *x,int dim)
+int Join_ipo(Region *R,double *x)
 {
 	Join *J=(Join*)&R[1];
-	return _Join_ipo(J,x,dim);
+	return _Join_ipo(J,x);
 }
 
 // ==================================================================
@@ -83,14 +83,13 @@ void Join_computeBox(const Join* J, Box* B)
 {
 	int i;
 	int r;
-	int dim;
 
 	assert(J);
 	assert(B);
 	
 	if(J->count == 0)
 	{
-		for(i=0;i<MAX_BOX_DIM;i++)
+		for(i=0;i<BOX_DIM;i++)
 		{
 			B->min[i] = 0.0;
 			B->max[i] = 0.0;
@@ -98,8 +97,7 @@ void Join_computeBox(const Join* J, Box* B)
 	}
 	else
 	{
-		dim = J->R[0]->dim;
-		for(i=0;i<dim;i++)
+		for(i=0;i<BOX_DIM;i++)
 		{
 			B->min[i] = -INFINITY;
 			B->max[i] =  INFINITY;

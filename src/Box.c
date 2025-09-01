@@ -14,49 +14,37 @@
 // Oracles for type Annulus
 // ==================================================================
 
-int Box_po(Region *vA, double *x, int d)
+int Box_po(Region *vA, double *x)
 {
 	Box *B=(Box*)&vA[1];
-	return _Box_po(B, x, d);
+	return _Box_po(B, x);
 }
 
-int Box_ro(Region *vA, double *minBox, double *maxBox, int d)
+int Box_ro(Region *vA, double *minBox, double *maxBox)
 {
 	Box *B=(Box*)&vA[1];
-	return _Box_ro(B, minBox, maxBox, d);
+	return _Box_ro(B, minBox, maxBox);
 }
 
 // ==================================================================
 // Methods of for regions of type Annulus
 // ==================================================================
 
-Region *Box_create(double* a, double* b, int d)
+Box *Box_create(const double* restrict a, const double* restrict b)
 {
 	Box *B;
-	Region *R;
-	int rq;
 	double tmp;
 
-    if(d>MAX_BOX_DIM)
-        return NULL;
+	B = (Box*)malloc(sizeof(Box));
+	memcpy(B->min,a,sizeof(double)*BOX_DIM);
+	memcpy(B->max,b,sizeof(double)*BOX_DIM);
 
-	rq = sizeof(Region)+sizeof(Box);
-	R = (Region*)calloc(1,rq);
-	B = (Box*)&R[1];
-	R->intersectionQ=Box_ro;
-	R->inclusionQ=Box_po;
-	R->free=Box_free;
-
-	memcpy(B->min,a,sizeof(double)*d);
-	memcpy(B->max,b,sizeof(double)*d);
-	B->dim=d;
-
-	return R;
+	return B;
 }
 
-void Box_free(Region *R)
+void Box_free(Box *B)
 {
-	if(R) free(R);
+	if(B) free(B);
 }
 
 // ==================================================================
