@@ -49,9 +49,9 @@ _qselect_median3(void* base, size_t size, size_t left, size_t right, __compare_f
 {
 	size_t mid = (left + right + 1) / 2;
 
-	void* lptr = _SAFE_INDEX(base,left,size);
-	void* rptr = _SAFE_INDEX(base,right,size);
-	void* mptr = _SAFE_INDEX(base,mid,size);
+	const void* lptr = _SAFE_INDEX(base,left,size);
+	const void* rptr = _SAFE_INDEX(base,right,size);
+	const void* mptr = _SAFE_INDEX(base,mid,size);
 
 	if ((compare(lptr, mptr, arg) > 0) != (compare(lptr, rptr,arg) > 0))
 		return left;

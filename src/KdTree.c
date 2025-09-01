@@ -354,7 +354,7 @@ static index_t KdTreeNode_create(KdTree *K, int *idx, int n, int type,const doub
 	// 1.5. We'll need to create a node in all other cases.
 
 	if(K->count>=K->capacity) {
-		K->capacity = K->capacity + (K->capacity >> 3) + 6;
+		K->capacity = (K->capacity) ? K->capacity + (K->capacity >> 3) + 6 : 64;
 		K->nodes = realloc(K->nodes, K->capacity*sizeof(KdTreeNode));
 		if(!K->nodes) return NO_NODE;
 	}
