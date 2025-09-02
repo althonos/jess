@@ -49,7 +49,7 @@ extern int TessTemplate_match(const Template *T,int k,const Atom *A);
 extern int TessTemplate_range(const Template *T,int i,int j,double *a,double *b);
 extern const double *TessTemplate_position(const Template *T, int k);
 extern double TessTemplate_distWeight(const Template *T, int k);
-extern int TessTemplate_check(const Template *T, Atom **A, int *order, int k, int ignore_chain);
+extern int TessTemplate_check(const Template *T, Atom **A, int *order, int k, IgnoreType ignore_chain);
 extern void TessTemplate_candidates(const Template *T, const Molecule *M, int k, CandidateSet** S);
 extern const char *TessTemplate_name(const Template *T);
 extern double TessTemplate_logE(const Template *T,double rmsd, int n);

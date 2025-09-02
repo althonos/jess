@@ -204,7 +204,7 @@ int JessQuery_nextTemplate(JessQuery *Q)
 	return (Q->node) ? 1 : 0;
 }
 
-int JessQuery_next(JessQuery *Q, int ignore_chain)
+int JessQuery_next(JessQuery *Q, IgnoreType ignore_chain)
 {
 	Template *T;
 	Atom **A;

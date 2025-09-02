@@ -75,7 +75,7 @@ double TessTemplate_distWeight(const Template *T, int k)
 	return TessAtom_distWeight(J->atom[k]);
 }
 
-int TessTemplate_check(const Template *T, Atom **A, int *order, int k, int ignore_chain)
+int TessTemplate_check(const Template *T, Atom **A, int *order, int k, IgnoreType ignore_chain)
 {
 	const TessTemplate *J = (const TessTemplate*)&T[1];
 	int i;
@@ -91,18 +91,14 @@ int TessTemplate_check(const Template *T, Atom **A, int *order, int k, int ignor
 		//c = A[i]->chainID-A[k-1]->chainID;
 		//d = TessAtom_chainID(J->atom[i])-TessAtom_chainID(J->atom[k-1]);
 
-		if(ignore_chain==1)
+		if(ignore_chain==ignoreNone)
 		{
-			c=0;
-			d=0;
-		}
-
-		if(c==0 && d!=0) return 0;
-		if(c!=0 && d==0) return 0;
-
-		if(c!=0)
-		{
-			continue;
+			if(c==0 && d!=0) return 0;
+			if(c!=0 && d==0) return 0;
+			if(c!=0)
+			{
+				continue;
+			}
 		}
 
 		// Compare residue sequence numbers
@@ -112,6 +108,11 @@ int TessTemplate_check(const Template *T, Atom **A, int *order, int k, int ignor
 
 		if(a==0 && b!=0) return 0;
 		if(a!=0 && b==0) return 0;
+
+		if(ignore_chain!=ignoreAtoms)
+		{
+			if(a==0 && c!=0) return 0;
+		}
 	}
 
 	return 1;

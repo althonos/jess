@@ -34,7 +34,7 @@ typedef struct _Scanner Scanner;
 extern Scanner *Scanner_create(Molecule*,Template*,ScannerData*,double,double,bool);
 extern Scanner *Scanner_reuse(Scanner*,Molecule*,Template*,ScannerData*,double,double,bool);
 extern void Scanner_free(Scanner*);
-extern Atom **Scanner_next(Scanner*, int);
+extern Atom **Scanner_next(Scanner*, IgnoreType);
 extern double Scanner_rmsd(Scanner*);
 
 // ==================================================================

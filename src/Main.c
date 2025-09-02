@@ -119,7 +119,7 @@ static void output(
 		A->charge
 		);
 }
-static void search(const char *filename,Jess *J,double tRmsd,double tDistance,double max_total_threshold,int no_transform,int ignore_chain,int write_filename,int ignore_endmdl, float conservation_cutoff, bool fastScan)
+static void search(const char *filename,Jess *J,double tRmsd,double tDistance,double max_total_threshold,int no_transform,IgnoreType ignore_chain,int write_filename,int ignore_endmdl, float conservation_cutoff, bool fastScan)
 {
 	Molecule *M;
 	Superposition *sup;
@@ -350,7 +350,7 @@ int main(int argc, char **argv)
 	int count;
 	//Riziotis edit
 	int no_transform=0;
-	int ignore_chain=0;
+	IgnoreType ignore_chain=ignoreNone;
 	int write_filename=0;
 	int ignore_endmdl=0;
 	int fastScan=0;
@@ -366,7 +366,8 @@ int main(int argc, char **argv)
 			if(*s=='f') feedbackQ=1;
 			//Riziotis edit
 			else if(*s=='n') no_transform=1;
-			else if(*s=='i') ignore_chain=1;
+			else if(*s=='i') ignore_chain=ignoreAtoms;
+			else if(*s=='I') ignore_chain=ignoreResidues;
 			else if(*s=='q') write_filename=1;
 			else if(*s=='e') ignore_endmdl=1;
 			else if(*s=='s') fastScan=1;

@@ -190,7 +190,7 @@ void Scanner_free(Scanner *S)
 	}
 }
 
-Atom **Scanner_next(Scanner *S, int ignore_chain)
+Atom **Scanner_next(Scanner *S, IgnoreType ignore_chain)
 {
 	int j,k;
 	double min,max;

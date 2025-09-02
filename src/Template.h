@@ -15,9 +15,11 @@
 // Forward declarations
 // ==================================================================
 // Template				The template interface
+// IgnoreChainType		The type of ignore_chain in check
 // ==================================================================
 
 typedef struct _Template Template;
+typedef enum { ignoreNone,ignoreResidues,ignoreAtoms } IgnoreType;
 
 // ==================================================================
 // type Template
@@ -39,7 +41,7 @@ struct _Template
 	int (*count)(const Template*);
 	int (*match)(const Template*,int,const Atom*);
 	int (*range)(const Template*,int,int,double*,double*);
-	int (*check)(const Template*,Atom**,int*,int,int);
+	int (*check)(const Template*,Atom**,int*,int,IgnoreType);
 	void (*candidates)(const Template*, const Molecule*, int, CandidateSet**);
 	const double *(*position)(const Template*,int);
 	const char *(*name)(const Template*);

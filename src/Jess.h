@@ -51,7 +51,7 @@ extern JessQuery *Jess_query(Jess*,Molecule*,double,double,bool);
 // ==================================================================
 
 extern void JessQuery_free(JessQuery*);
-extern int JessQuery_next(JessQuery*, int);
+extern int JessQuery_next(JessQuery*, IgnoreType);
 extern int JessQuery_nextTemplate(JessQuery*);
 extern Template *JessQuery_template(const JessQuery*);
 extern const Molecule *JessQuery_molecule(const JessQuery*);
