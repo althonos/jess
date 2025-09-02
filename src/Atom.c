@@ -25,7 +25,7 @@ static void Atom_copyToken(char *d,const char *s,int n)
 	d[n]=0;
 	for(i=0; i<n; i++)
 	{
-		if(isspace(d[i])) d[i]='_';
+		if(isspace(d[i]) || !d[i]) d[i]='_';
 	}
 }
 

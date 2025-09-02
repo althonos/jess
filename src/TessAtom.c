@@ -14,11 +14,6 @@
 #include <string.h>
 #include <ctype.h>
 
-#ifdef _MSC_VER
-#define strncasecmp _strnicmp
-#define strcasecmp _stricmp
-#endif
-
 // ==================================================================
 // Methods of type TessAtom (ARGGH!!!)
 // ==================================================================
@@ -271,9 +266,9 @@ static int TessAtom_isInSamePosition(const TessAtom *T, const Atom *A)
 
 static int TessAtom_isMainChain(const Atom *A)
 {
-	if(strcasecmp(A->name,"_CA_")==0) return 1;
-	if(strcasecmp(A->name,"_N__")==0) return 1;
-	if(strcasecmp(A->name,"_O__")==0) return 1;
+	if(TessAtom_compareName(A->name,"_CA_")==0) return 1;
+	if(TessAtom_compareName(A->name,"_N__")==0) return 1;
+	if(TessAtom_compareName(A->name,"_O__")==0) return 1;
 
 	return 0;
 }
@@ -284,7 +279,7 @@ static int TessAtom_matchName(const TessAtom *T, const Atom *A)
 
 	for(k=0; k<T->nameCount; k++)
 	{
-		if(strcasecmp(A->name,T->name[k])==0) return 1;
+		if(TessAtom_compareName(A->name,T->name[k])==0) return 1;
 	}
 
 	return 0;
@@ -296,7 +291,7 @@ static int TessAtom_matchResName(const TessAtom *T, const Atom *A)
 
 	for(k=0; k<T->resNameCount; k++)
 	{
-		if(strcasecmp(A->resName,T->resName[k])==0) return 1;
+		if(TessAtom_compareName(A->resName,T->resName[k])==0) return 1;
 	}
 
 	return 0;

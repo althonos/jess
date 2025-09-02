@@ -12,18 +12,14 @@
 #include <stdio.h>
 
 #include "Atom.h"
+#include "TessAtom.h"
 #include "ResIndex.h"
-
-#ifdef _MSC_VER
-#define strncasecmp _strnicmp
-#define strcasecmp _stricmp
-#endif
 
 static int ResNames_compare(const void *pa, const void *pb)
 {
 	const Atom *a = **((const Atom***)pa);
 	const Atom *b = **((const Atom***)pb);
-    int result = strncasecmp(&a->resName[0], &b->resName[0], 4);
+    int result = TessAtom_compareName(&a->resName[0], &b->resName[0]);
     if (result != 0)
         return result;
     return a->serial - b->serial;
@@ -69,7 +65,7 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
 
     numRes = 1;
     for (i = 1; i < n; i++) 
-        numRes += (strncasecmp((*tmp[i-1])->resName, (*tmp[i])->resName, 4) != 0);
+        numRes += (TessAtom_compareName((*tmp[i-1])->resName, (*tmp[i])->resName) != 0);
     
     // Allocate data for residues
 
@@ -94,7 +90,7 @@ extern ResIndex* ResIndex_create(Atom** atoms, int n)
 
     for (i = 1, j = 4, k = 1; i < n; i++) {
 
-        if (strncasecmp((*tmp[i-1])->resName, (*tmp[i])->resName, 4) != 0) {
+        if (TessAtom_compareName((*tmp[i-1])->resName, (*tmp[i])->resName) != 0) {
             memcpy(names, (*tmp[i])->resName, 4*sizeof(char));
             names += 4;
 
@@ -127,7 +123,7 @@ extern int ResIndex_find(const ResIndex* I, const char resName[4]) {
 
     while (start < end) {
         mid = (start + end) / 2;
-        cmp = strncasecmp(&I->names[4*mid], resName, 4);
+        cmp = TessAtom_compareName(&I->names[4*mid], resName);
         if(cmp < 0) {
             start = (mid == start) ? mid + 1 : mid;
         } else if (cmp > 0) {

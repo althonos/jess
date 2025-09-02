@@ -60,6 +60,9 @@ struct _TessAtom
 // ==================================================================
 
 extern TessAtom *TessAtom_create(const char*);
+extern TessAtom* TessAtom_copy(const TessAtom*);
+extern int TessAtom_match(const TessAtom*,const Atom*);
+extern double TessAtom_distance(const TessAtom*, const TessAtom*);
 
 static inline void TessAtom_free(TessAtom *A)
 {
@@ -71,7 +74,22 @@ static inline const double *TessAtom_position(const TessAtom *A)
 	return A->pos;
 }
 
-extern int TessAtom_match(const TessAtom*,const Atom*);
+#ifndef TessAtom_toupper
+#define TessAtom_toupper(c) ((( c >= 'a' ) && (c <= 'z')) ? c & (~0x20) : c);
+#endif
+
+static int TessAtom_compareName(const char* restrict a, const char* restrict b)
+{
+	for(int i=0; i<4;i++)
+	{
+		char ca = TessAtom_toupper(a[i]);
+		char cb = TessAtom_toupper(b[i]);
+		int cmp = ca - cb;
+		if(cmp != 0) return cmp;
+	}
+	return 0;
+}
+
 
 static inline int TessAtom_resSeq(const TessAtom *A)
 {
@@ -113,8 +131,7 @@ static inline int TessAtom_code(const TessAtom *A)
 	return A->code;
 }
 
-extern TessAtom* TessAtom_copy(const TessAtom*);
-extern double TessAtom_distance(const TessAtom*, const TessAtom*);
+
 
 // ==================================================================
 
