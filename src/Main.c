@@ -22,6 +22,8 @@
 // atomFormat			The format of a PDB ATOM record (for printf)
 // ==================================================================
 
+#define MAX_CANDIDATES -1
+
 static const char *atomFormat =
 	"ATOM  %5i%5s%c%-3s%c%c%4i%-4c%8.3f%8.3f%8.3f%6.2f%6.2f\n"; //Riziotis edit
 	//"ATOM  %5i%5s%c%-3s%c%c%4i%-4c%8.3f%8.3f%8.3f\n"; //Riziotis edit
@@ -129,7 +131,7 @@ static void search(const char *filename,Jess *J,double tRmsd,double tDistance,do
 	const double *P,*c[2];
 	double det;
 	double logE;
-	int killswitch = 0;
+	int candidates = 0;
 
 	if(!(file=fopen(filename,"r")))
 	{
@@ -155,8 +157,8 @@ static void search(const char *filename,Jess *J,double tRmsd,double tDistance,do
 		T=JessQuery_template(Q);
 		// printf("current template: %s\n", T->name(T));
 
-		killswitch = (T!=Tprev) ? 0 : killswitch + 1;
-		if(killswitch == 1000)
+		candidates = (T!=Tprev) ? 0 : candidates + 1;
+		if(candidates == MAX_CANDIDATES)
 		{
 			JessQuery_nextTemplate(Q);
 			continue;
